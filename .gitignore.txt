@@ -1,0 +1,2 @@
+#ignorer tout les fichier du target
+target
