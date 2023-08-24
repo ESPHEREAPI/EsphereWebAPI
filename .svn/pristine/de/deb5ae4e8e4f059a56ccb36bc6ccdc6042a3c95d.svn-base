@@ -1,0 +1,432 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package sante;
+
+import dao.AbstractJpaDAO;
+import dao.OrclassCaracteristiquesDao;
+import dao.OrclassEvenementDao;
+import dao.OrclassNatureMaladieDao;
+import dao.OrclassPrestataireDao;
+import dao.OrclassRefNatureMaladieDao;
+import dao.OrclassSinistreDao;
+import dao.OrclassSinistreMaladieDao;
+import dao.orclassRefPrestataireDao;
+import enums.SortSinistreMaladie;
+import enums.policeSouscripteurZone;
+import exception.GlobalException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import javax.annotation.Resource;
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionManagement;
+import javax.ejb.TransactionManagementType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.transaction.HeuristicMixedException;
+import javax.transaction.HeuristicRollbackException;
+import javax.transaction.NotSupportedException;
+import javax.transaction.RollbackException;
+import javax.transaction.SystemException;
+import javax.transaction.UserTransaction;
+import modele.OrclassAvenant;
+import modele.OrclassCaracteristiqueSinistreMaladie;
+import modele.OrclassCaracteristiques;
+import modele.OrclassEntreprises;
+import modele.OrclassEvenement;
+import modele.OrclassEvenementSinistreMaladie;
+import modele.OrclassGarantie;
+import modele.OrclassGroupePolice;
+import modele.OrclassIntervenant;
+import modele.OrclassIntervenantSinistreMaladie;
+import modele.OrclassMedicament;
+import modele.OrclassMedicamentSinistreMaladie;
+import modele.OrclassNatureMaladie;
+import modele.OrclassPolice;
+import modele.OrclassPrestataire;
+import modele.OrclassRefNatureMaladie;
+import modele.OrclassRisque;
+import modele.OrclassRisqueFamille;
+import modele.OrclassRubrique;
+import modele.OrclassSinistre;
+import modele.OrclassSinistreMaladie;
+import modele.OrclassUtilisateurs;
+import modele.orclassRefPrestataire;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ *
+ * @author JIATOU FRANCK
+ */
+@Stateless
+
+@TransactionManagement(TransactionManagementType.BEAN)
+public class Sinistre implements ISinistre {
+    
+    @Resource
+    private UserTransaction tx;
+    @PersistenceContext(unitName = AbstractJpaDAO.PersistanceUnit)
+    private EntityManager em;
+    Logger logger = LoggerFactory.getLogger(Sante.class);
+    @EJB
+    orclassRefPrestataireDao refPrestataireDao;
+    @EJB
+    OrclassPrestataireDao prestataireDao;
+    @EJB
+    OrclassNatureMaladieDao natureMaladieDao;
+    @EJB
+    OrclassRefNatureMaladieDao refNatureMaladieDao;
+    @EJB
+    OrclassSinistreDao sinistreDao;
+    @EJB
+    OrclassSinistreMaladieDao sinistreMaladieDao;
+    @EJB
+    OrclassEvenementDao eventDao;
+    @EJB
+    OrclassCaracteristiquesDao caracteristiqueDao;
+
+    // Add business logic below. (Right-click in editor and choose
+    // "Insert Code > Add Business Method")
+    @Override
+    public String creationPrestataire(OrclassEntreprises e, orclassRefPrestataire ref, OrclassPrestataire p) {
+        String message = "";
+        try {
+            tx.begin();
+            OrclassPrestataire pr = null;
+            orclassRefPrestataire refp = null;
+            
+            refp = refPrestataireDao.findEntityHavingValue("code", ref.getCode());
+            if (refp == null) {
+                refp = new orclassRefPrestataire(ref.getCode(), ref.getLibelle());
+                refp.setStatutPrestataire(ref.getStatutPrestataire());
+                em.persist(refp);
+            } else {
+                refp = em.merge(refp);
+            }
+            pr = prestataireDao.finkey(refp, e);
+            if (pr == null) {
+                pr = new OrclassPrestataire();
+                pr.setDateCreation(new Date());
+                pr.setIdEntreprise(e);
+                pr.setIdRefPrestataire(refp);
+                em.persist(pr);
+            }
+            
+            tx.commit();
+            message = exception.Success.INSERT_SUCCESS.name();
+            
+        } catch (NotSupportedException | SystemException | RollbackException | HeuristicMixedException | HeuristicRollbackException | SecurityException ex) {
+            try {
+                message = exception.Error.INSERT_ERROR.name();
+                tx.rollback();
+                throw ex;
+            } catch (Exception exc) {
+                
+            }
+            
+        }
+        return message;
+    }
+    
+    @Override
+    public String creationNatureMaladie(OrclassEntreprises e, OrclassRefNatureMaladie ref, OrclassNatureMaladie p) {
+        
+        String message = "";
+        try {
+            tx.begin();
+            OrclassNatureMaladie nm = null;
+            OrclassRefNatureMaladie refNm = null;
+            
+            refNm = refNatureMaladieDao.findEntityHavingValue("code", ref.getCode());
+            if (refNm == null) {
+                refNm = new OrclassRefNatureMaladie(ref.getCode(), ref.getLibelle());
+                
+                em.persist(refNm);
+            } else {
+                refNm = em.merge(refNm);
+            }
+            nm = natureMaladieDao.finkey(refNm, e);
+            if (nm == null) {
+                nm = new OrclassNatureMaladie();
+                nm.setDateCreation(new Date());
+                nm.setIdEntreprise(e);
+                nm.setIdRefNatureMaladie(refNm);
+                em.persist(nm);
+            }
+            
+            tx.commit();
+            message = exception.Success.INSERT_SUCCESS.name();
+            
+        } catch (NotSupportedException | SystemException | RollbackException | HeuristicMixedException | HeuristicRollbackException | SecurityException ex) {
+            try {
+                message = exception.Error.INSERT_ERROR.name();
+                tx.rollback();
+                throw ex;
+            } catch (Exception exc) {
+                
+            }
+            
+        }
+        return message;
+        
+    }
+    
+    @Override
+    public Boolean createSinistreMaladie(OrclassEntreprises e, OrclassPolice p, OrclassAvenant avenant, OrclassSinistre sinistre, OrclassRisque risque, OrclassRisqueFamille risqueFamille, OrclassPrestataire prestataire, OrclassNatureMaladie natureMaladie, OrclassRubrique rubrique, OrclassGarantie garantie,OrclassGroupePolice gp, List<OrclassSinistreMaladie> listeSinistreMaladie, List<OrclassMedicamentSinistreMaladie> listesMedicamentSinistreMaladie, List<OrclassIntervenant> listesIntervenant, List<OrclassEvenement> listesEvenement, List<OrclassCaracteristiques> listesCaracteristiques, Boolean valide_pec, OrclassUtilisateurs user) throws GlobalException {
+        Boolean reponse = Boolean.TRUE;
+        try {
+            tx.begin();
+            /*
+            creation du sinistre declare
+             */
+            OrclassSinistre sin = null;
+            OrclassSinistreMaladie sinMaladie = null;
+            OrclassMedicament medicament = null;
+            OrclassEvenement evenement = null;
+            OrclassIntervenant intervenant = null;
+            OrclassCaracteristiques caracteristiques = null;
+            List<OrclassSinistreMaladie> listesSinistreMaladies = new ArrayList<>();
+            OrclassMedicamentSinistreMaladie medicamentSinistreMaladie = null;
+            OrclassEvenementSinistreMaladie evenementSinistreMaladie = null;
+            OrclassIntervenantSinistreMaladie intervenantSinistreMaladie = null;
+            OrclassCaracteristiqueSinistreMaladie caracteristiqueSinistreMaladie = null;
+            sin = sinistreDao.finKey(e, sinistre.getNumero_sinistre(), p);
+            if (sin == null) {
+                sin = new OrclassSinistre();
+                sin.setDateCreation(new Date());
+                sin.setDate_Declaration(sinistre.getDate_Declaration());
+                sin.setDate_Survenu(sinistre.getDate_Survenu());
+                sin.setIdEntreprise(e);
+                sin.setIdPolice(p);
+                sin.setIdIntermediaire(p.getIdIntermediaire());
+                sin.setIdNatureMaladie(natureMaladie);
+                sin.setIdPrestataire(prestataire);
+                sin.setIdRegistreSinistre(sinistre.getIdRegistreSinistre());
+                sin.setIdRisque(risque);
+                sin.setIdRisqueFamille(risqueFamille);
+              
+                sin.setIdRubrique(rubrique);
+                sin.setIdGarantie(garantie);
+                sin.setIdUtilisateurs(user);
+                sin.setIdAvenant(avenant);
+                sin.setIdGroupePolice(gp);
+                if (Objects.equals(valide_pec, Boolean.TRUE)) {
+                     sin.setValide_pec(valide_pec);
+                     sin.setValider_par(user.getPrenom()==null ? user.getNom():user.getNom()+ " "+user.getPrenom());
+                }else{
+                    sin.setValide_pec(Boolean.FALSE);
+                }
+               
+                sin.setNumero_sinistre(sinistre.getNumero_sinistre());
+                sin.setSort(sinistre.getSort());
+                if (Objects.equals(sinistre.getRejetter(), Boolean.TRUE)) {
+                    sin.setDate_rejet(new Date());
+                    sin.setRejetter(Boolean.TRUE);
+                    sin.setMotif_rejet(sinistre.getMotif_rejet());
+                      sin.setObservation(sinistre.getObservation());
+                   
+                }else{
+                     sin.setRejetter(Boolean.FALSE);
+                }
+                em.persist(sin);
+            } else {
+                throw new GlobalException("FATAL ERROR ... ACTION IS EXISTS", "PLEASE CHECK AGAINST ID ..." + sin.getId());
+            }
+
+            /*
+            enregistrons les details des sinistre telques les prestations,medicaments
+             */
+            for (OrclassSinistreMaladie sinMaladies : listeSinistreMaladie) {
+                if (sinMaladies.getIdPrestation() == null || sinMaladies.getIdPrestation().getId() == null) {
+                    continue;
+                }
+                sinMaladie = sinistreMaladieDao.finKey(e, sin, sinMaladies.getIdPrestation());
+                if (sinMaladie == null) {
+                    sinMaladie = new OrclassSinistreMaladie();
+                    sinMaladie.setBase_remboursement(sinMaladies.getBase_remboursement());
+                    sinMaladie.setCle(sinMaladies.getCle());
+                    sinMaladie.setDateCreation(new Date());
+                    sinMaladie.setDate_acte(sinMaladies.getDate_acte());
+                    sinMaladie.setSort(sinMaladies.getSort());
+                    if (sinMaladies.getSort()!=null && sinMaladies.getSort().equals(SortSinistreMaladie.rejetter)) {
+                        sinMaladie.setDate_rejetter(new Date());
+                    }
+                    sinMaladie.setDate_saisir(new Date());
+                    if (Objects.equals(valide_pec, Boolean.TRUE)) {
+                        sinMaladie.setDate_valider(new Date());
+                    }
+                    
+                    sinMaladie.setDeboursement_reel(sinMaladies.getBase_remboursement());
+                    sinMaladie.setForfait(sinMaladies.getForfait());
+                    sinMaladie.setIdEntreprise(e);
+                    sinMaladie.setIdPrestation(sinMaladies.getIdPrestation());
+                    sinMaladie.setIdSinistre(sin);
+                    sinMaladie.setIdUtilisateurs(user);
+                    sinMaladie.setMontant_exclure(sinMaladies.getMontant_exclure());
+                    sinMaladie.setMontant_remb(sinMaladies.getMontant_remb());
+                    sinMaladie.setMontant_unitant(sinMaladies.getMontant_unitant());
+                    sinMaladie.setMotif_sort(sinMaladies.getMotif_sort());
+                    sinMaladie.setNombre_acte_reel(sinMaladies.getNombre_acte_reel());
+                    sinMaladie.setNombre_acte_remb(sinMaladies.getNombre_acte_remb());
+                    sinMaladie.setNombre_cle_reel(sinMaladies.getNombre_cle_reel());
+                    sinMaladie.setNombre_cle_remb(sinMaladies.getNombre_cle_remb());
+                    sinMaladie.setObservation(sinMaladies.getObservation());
+                    if (sinMaladies.getSort()!=null && sinMaladies.getSort().equals(SortSinistreMaladie.rejetter)) {
+                        sinMaladie.setRejeter_par(user.getPrenom() == null ? user.getNom() : user.getNom() + " " + user.getPrenom());
+                        
+                    }
+                    sinMaladie.setRemb_externe(sinMaladies.getRemb_externe());
+                    sinMaladie.setSaisir_par(user.getPrenom() == null ? user.getNom() : user.getNom() + " " + user.getPrenom());
+                    sinMaladie.setSort(sinMaladies.getSort());
+                    sinMaladie.setTaux(sinMaladies.getTaux());
+                    if (Objects.equals(valide_pec, Boolean.TRUE)) {
+                        sinMaladie.setValider_par(user.getPrenom() == null ? user.getNom() : user.getNom() + " " + user.getPrenom());
+                   
+                    }
+                    em.persist(sinMaladie);
+                    listesSinistreMaladies.add(sinMaladie);
+                }
+                
+            }
+            
+            for (OrclassSinistreMaladie sinMad : listesSinistreMaladies) {
+                /*
+                nous devons enregistre les medicament,les evenements,les intervenant,et les caracteristique pour une prestation precis
+                 */
+ /*
+                en premier on enregistre les medicaments
+                 */
+                for (OrclassMedicamentSinistreMaladie medSin : listesMedicamentSinistreMaladie) {
+                    if (medSin.getIdSinistreMaladie() == null || medSin.getIdSinistreMaladie().getIdPrestation() == null || medSin.getIdSinistreMaladie().getIdPrestation().getId() == null) {
+                        continue;
+                    }
+                    if (sinMad.getIdPrestation().getLibelle().equals(medSin.getIdSinistreMaladie().getIdPrestation().getLibelle())) {
+                        if (medSin.getIdMedicament().getId() == null) {
+                            medicament = new OrclassMedicament(medSin.getIdMedicament().getCode(), medSin.getIdMedicament().getLibelle());
+                            em.persist(medicament);
+                        } else {
+                            medicament = em.merge(medSin.getIdMedicament());
+                        }
+                        
+                        medicamentSinistreMaladie = new OrclassMedicamentSinistreMaladie();
+                        medicamentSinistreMaladie.setIdEntreprise(e);
+                        medicamentSinistreMaladie.setIdMedicament(medicament);
+                        medicamentSinistreMaladie.setIdSinistreMaladie(sinMad);
+                        medicamentSinistreMaladie.setMontant(medSin.getMontant());
+                        medicamentSinistreMaladie.setCout(medSin.getCout());
+                        medicamentSinistreMaladie.setMontant_remb(medSin.getMontant_remb());
+                        medicamentSinistreMaladie.setMotif(medSin.getMotif());
+                        medicamentSinistreMaladie.setQuantie(medSin.getQuantie());
+                        medicamentSinistreMaladie.setSort(medSin.getSort());
+                        medicamentSinistreMaladie.setTaux(medSin.getTaux());
+                        em.persist(medicamentSinistreMaladie);
+                        
+                    }
+                }
+                /*
+                en deuxieme on enregistre les intervenant
+                 */
+                for (OrclassIntervenant intv : listesIntervenant) {
+                    if (intv.getSinistreMaladie() == null || intv.getSinistreMaladie().getIdPrestation() == null || intv.getSinistreMaladie().getIdPrestation().getId() == null) {
+                        continue;
+                    }
+                    if (sinMad.getIdPrestation().getLibelle().equals(intv.getSinistreMaladie().getIdPrestation().getLibelle())) {
+                        if (intv.getId() == null) {
+                            intervenant = new OrclassIntervenant(intv.getCode(), intv.getNom());
+                            intervenant.setIdEntreprise(e);
+                            em.persist(intervenant);
+                        } else {
+                            intervenant = intv;
+                        }
+                        
+                        intervenantSinistreMaladie = new OrclassIntervenantSinistreMaladie();
+                        intervenantSinistreMaladie.setDate_creation(intv.getDate_creation());
+                        intervenantSinistreMaladie.setDesignation(intv.getDesignation());
+                        intervenantSinistreMaladie.setHoraire(intv.getHoraire());
+                        intervenantSinistreMaladie.setIdEntreprise(e);
+                        intervenantSinistreMaladie.setIdIntervenant(intervenant);
+                        intervenantSinistreMaladie.setIdSinistreMaladie(sinMad);
+                        intervenantSinistreMaladie.setNature(intv.getNature());
+                        intervenantSinistreMaladie.setObservation(intv.getObservation());
+                        em.persist(intervenantSinistreMaladie);
+                    }
+                    
+                }
+
+                /*
+                gestion des evenements
+                 */
+                for (OrclassEvenement event : listesEvenement) {
+                    if (event.getSinistreMaladie() == null || event.getSinistreMaladie().getIdPrestation() == null || event.getSinistreMaladie().getIdPrestation().getId() == null) {
+                        continue;
+                    }
+                    if (sinMad.getIdPrestation().getLibelle().equals(event.getSinistreMaladie().getIdPrestation().getLibelle())) {
+                        evenement = eventDao.findEntityHavingValue("evenement", event.getEvenement());
+                        if (evenement == null) {
+                            evenement = new OrclassEvenement(event.getEvenement());
+                            evenement.setIdEntreprise(e);
+                            em.persist(evenement);
+                        }                        
+                        evenementSinistreMaladie = new OrclassEvenementSinistreMaladie();
+                        evenementSinistreMaladie.setDate_evenement(event.getDate_evenement());
+                        evenementSinistreMaladie.setIdEntreprise(e);
+                        evenementSinistreMaladie.setIdEvenement(evenement);
+                        evenementSinistreMaladie.setIdSinistreMaladie(sinMad);
+                        evenementSinistreMaladie.setObservation(event.getObservation());
+                        evenementSinistreMaladie.setTraite(event.getTraite());
+                        em.persist(evenementSinistreMaladie);
+                        
+                    }
+                    
+                }
+                /*
+                 gestion caracteristique sinistre maladie
+                 */
+                for (OrclassCaracteristiques caract : listesCaracteristiques) {
+                    if (caract.getLibelle() == null || "".equals(caract.getLibelle())) {
+                        continue;
+                    }
+                    if (sinMad.getIdPrestation().getLibelle().equals(caract.getSinistreMaladie().getIdPrestation().getLibelle())) {
+                        caracteristiques = caracteristiqueDao.finKeyBylibelle(caract.getLibelle());
+                        if (caracteristiques == null) {
+                            try {
+                                   caracteristiques = new OrclassCaracteristiques(caract.getLibelle().substring(0, 3), caract.getLibelle());
+                         
+                            } catch (Exception ecaract) {
+                                   caracteristiques = new OrclassCaracteristiques(caract.getLibelle(), caract.getLibelle());
+                         
+                            }
+                            em.persist(caracteristiques);
+                        }
+                        caracteristiqueSinistreMaladie = new OrclassCaracteristiqueSinistreMaladie();
+                        caracteristiqueSinistreMaladie.setIdCaracteristiques(caracteristiques);
+                        caracteristiqueSinistreMaladie.setIdEntreprise(e);
+                        caracteristiqueSinistreMaladie.setIdSinistreMaladie(sinMad);
+                        em.persist(caracteristiqueSinistreMaladie);
+                    }
+                    
+                }
+                
+            }
+            
+            tx.commit();
+        } catch (NotSupportedException | SystemException | RollbackException | HeuristicMixedException | HeuristicRollbackException | SecurityException ex) {
+            try {
+                reponse = Boolean.FALSE;
+                tx.rollback();
+                
+                throw ex;
+            } catch (Exception exc) {
+                
+            }
+            
+        }
+        return reponse;
+    }
+}

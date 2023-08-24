@@ -1,0 +1,213 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package dao;
+
+import enums.LienParente;
+import java.util.ArrayList;
+import java.util.List;
+import javax.ejb.Stateless;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import modele.OrclassAvenant;
+import modele.OrclassEntreprises;
+import modele.OrclassPolice;
+import modele.OrclassRisque;
+import modele.OrclassRisqueFamille;
+import modele.OrclasseRefGroupe;
+
+/**
+ *
+ * @author hp
+ */
+@Stateless
+public class OrclassRisqueFamilleDao extends AbstractJpaDAO<OrclassRisqueFamille> {
+
+    private static final long serialVersionUID = 1L;
+    @PersistenceContext(unitName = AbstractJpaDAO.PersistanceUnit)
+    private EntityManager em;
+    // Add business logic below. (Right-click in editor and choose
+    // "Insert Code > Add Business Method")
+
+    @Override
+    protected Class<OrclassRisqueFamille> getEntityClass() {
+        return OrclassRisqueFamille.class;
+    }
+
+    @Override
+    protected EntityManager getEntityManager() {
+        return em;
+    }
+
+    public List<OrclassRisqueFamille> listeRisqueFamilleByPoliceNotHaveAvenant(OrclassEntreprises e, OrclassPolice p) {
+        Query q;
+        q = em.createQuery("SELECT rf FROM  OrclassRisqueFamille rf WHERE rf.idEntreprise= :e and rf.idPolice= :p and rf.idAvenant is null")
+                .setParameter("e", e)
+                .setParameter("p", p);
+        if (q.getResultList().isEmpty()) {
+            return null;
+        }
+        return q.getResultList();
+    }
+
+    public List<OrclassRisqueFamille> allRisqueFamilleByPolice(OrclassEntreprises e, OrclassPolice p) {
+        Query q;
+        q = em.createQuery("SELECT rf FROM  OrclassRisqueFamille rf WHERE rf.idEntreprise= :e and rf.idPolice= :p and (rf.retire_de_la_police=0 or rf.retire_de_la_police=false)")
+                .setParameter("e", e)
+                .setParameter("p", p);
+        if (q.getResultList().isEmpty()) {
+            return null;
+        }
+        return q.getResultList();
+    }
+
+    public List<OrclassRisqueFamille> allRisqueFamilleByPolice(OrclassEntreprises e, OrclassPolice p, OrclassRisque r) {
+        Query q;
+        q = em.createQuery("SELECT rf FROM  OrclassRisqueFamille rf WHERE rf.idEntreprise= :e and rf.idPolice= :p and rf.idRisque.id= :idrisque")
+                .setParameter("e", e)
+                .setParameter("idrisque", r.getId())
+                .setParameter("p", p);
+        if (q.getResultList().isEmpty()) {
+            return new ArrayList<>();
+        }
+        return q.getResultList();
+    }
+
+    public List<OrclassRisqueFamille> listeRisqueFamilleFoPoliceByAvenant(OrclassEntreprises e, OrclassPolice p, OrclassAvenant av) {
+        Query q;
+        q = em.createQuery("SELECT rf FROM  OrclassRisqueFamille rf WHERE rf.idEntreprise= :e and rf.idPolice= :p and rf.idAvenant= :av")
+                .setParameter("e", e)
+                .setParameter("p", p)
+                .setParameter("av", av);
+        if (q.getResultList().isEmpty()) {
+            return new ArrayList<>();
+        }
+        return q.getResultList();
+    }
+
+    public List<OrclassRisqueFamille> listeRisqueFamilleFoPoliceByAvenant(OrclassEntreprises e, OrclassPolice p, OrclassAvenant av, OrclassRisque r) {
+        Query q;
+        q = em.createQuery("SELECT rf FROM  OrclassRisqueFamille rf WHERE rf.idEntreprise= :e and rf.idPolice= :p and rf.idAvenant= :av and rf.idRisque= :r")
+                .setParameter("e", e)
+                .setParameter("p", p)
+                .setParameter("r", r)
+                .setParameter("av", av);
+        if (q.getResultList().isEmpty()) {
+            return new ArrayList<>();
+        }
+        return q.getResultList();
+    }
+
+    public OrclassRisqueFamille risqueFamilleFoPoliceBylibelle(OrclassEntreprises e, OrclassPolice p, String libelle) {
+        Query q;
+        q = em.createQuery("SELECT rf FROM  OrclassRisqueFamille rf WHERE rf.idEntreprise= :e and rf.idPolice= :p and rf.nom_membre= :libelle and rf.idAvenant is null")
+                .setParameter("e", e)
+                .setParameter("p", p)
+                .setParameter("libelle", libelle);
+        if (q.getResultList().isEmpty()) {
+            return null;
+        }
+        return (OrclassRisqueFamille) q.getResultList().toArray()[0];
+    }
+
+    public OrclassRisqueFamille risqueFamilleFoPoliceBylibelle(OrclassEntreprises e, OrclassPolice p, String libelle, OrclassRisque r) {
+        Query q;
+        q = em.createQuery("SELECT rf FROM  OrclassRisqueFamille rf WHERE rf.idEntreprise= :e and rf.idPolice= :p and rf.nom_membre= :libelle  and rf.idRisque= :r and  rf.idAvenant is null")
+                .setParameter("e", e)
+                .setParameter("p", p)
+                .setParameter("r", r)
+                .setParameter("libelle", libelle);
+        if (q.getResultList().isEmpty()) {
+            return null;
+        }
+        return (OrclassRisqueFamille) q.getResultList().toArray()[0];
+    }
+
+    /*
+    liste une famille en fonction de son risque ou adherent
+     */
+    public List<OrclassRisqueFamille> listeFamilleRisqueByRisqueHavePoliceForGroup(OrclassEntreprises e, OrclassPolice p, OrclassRisque r, OrclasseRefGroupe group) {
+        Query q;
+        q = em.createQuery("SELECT rf FROM OrclassRisqueFamille rf WHERE rf.idPolice= :p and rf.idEntreprise= :e and rf.idRisque= :r and rf.idRisque.idGroup= :g")
+                .setParameter("p", p)
+                .setParameter("e", e)
+                .setParameter("r", r)
+                .setParameter("g", group);
+        return q.getResultList();
+    }
+
+    public List<OrclassRisqueFamille> listeFamilleRisqueForGroup(OrclassEntreprises e, OrclassPolice p, OrclasseRefGroupe group) {
+        Query q;
+        q = em.createQuery("SELECT rf FROM OrclassRisqueFamille rf WHERE rf.idPolice= :p and rf.idEntreprise= :e  and rf.idRisque.idGroup= :g")
+                .setParameter("p", p)
+                .setParameter("e", e)
+                //                  .setParameter("r", r)
+                .setParameter("g", group);
+        return q.getResultList();
+    }
+
+    public List<OrclassRisqueFamille> listeFamilleRisqueByRisqueHavePoliceForGroup(OrclassEntreprises e, OrclassPolice p, OrclassRisque r) {
+        Query q;
+        q = em.createQuery("SELECT rf FROM OrclassRisqueFamille rf WHERE rf.idPolice= :p and rf.idEntreprise= :e and rf.idRisque= :r ")
+                .setParameter("p", p)
+                .setParameter("e", e)
+                .setParameter("r", r) //                  .setParameter("g", group)
+                ;
+        return q.getResultList();
+    }
+
+    public Long nombreMembre(OrclassPolice police, OrclassEntreprises e, OrclasseRefGroupe g) {
+        Query q;
+        Long nombreRisque = 0L;
+        q = em.createQuery("SELECT COUNT(rf) FROM OrclassRisqueFamille rf WHERE rf.idPolice.id= :idp and rf.idEntreprise.idEntreprise= :ide and rf.codeid_retirer is null and (rf.lienParente= :c or rf.lienParente= :a) and rf.idRisque.idGroup.id= :idg")
+                .setParameter("idp", police.getId())
+                .setParameter("ide", e.getIdEntreprise())
+                .setParameter("idg", g.getId())
+                .setParameter("c", LienParente.conjoint)
+                .setParameter("a", LienParente.ascendant);
+        nombreRisque = (Long) q.getSingleResult();
+        return nombreRisque;
+
+    }
+
+    public List<OrclassRisqueFamille> listeMembre(OrclassPolice police, OrclassEntreprises e, OrclasseRefGroupe g) {
+        Query q;
+        Long nombreRisque = 0L;
+        q = em.createQuery("SELECT rf FROM OrclassRisqueFamille rf WHERE rf.idPolice.id= :idp and rf.idEntreprise.idEntreprise= :ide and rf.codeid_retirer is null and (rf.lienParente= :c or rf.lienParente= :a) and rf.idRisque.idGroup.id= :idg")
+                .setParameter("idp", police.getId())
+                .setParameter("ide", e.getIdEntreprise())
+                .setParameter("idg", g.getId())
+                .setParameter("c", LienParente.conjoint)
+                .setParameter("a", LienParente.ascendant);
+        return q.getResultList();
+
+    }
+
+    public Long nombreEnfant(OrclassPolice police, OrclassEntreprises e, OrclasseRefGroupe g) {
+        Query q;
+        Long nombreRisque = 0L;
+        q = em.createQuery("SELECT COUNT(rf) FROM OrclassRisqueFamille rf WHERE rf.idPolice.id= :idp and rf.idEntreprise.idEntreprise= :ide and rf.codeid_retirer is null and rf.lienParente= :c and rf.idRisque.idGroup.id= :idg")
+                .setParameter("idp", police.getId())
+                .setParameter("ide", e.getIdEntreprise())
+                .setParameter("idg", g.getId())
+                .setParameter("c", LienParente.enfant);
+        nombreRisque = (Long) q.getSingleResult();
+        return nombreRisque == null ? 0L : nombreRisque;
+
+    }
+
+    public List<OrclassRisqueFamille> listeEnfant(OrclassPolice police, OrclassEntreprises e, OrclasseRefGroupe g) {
+        Query q;
+        Long nombreRisque = 0L;
+        q = em.createQuery("SELECT rf FROM OrclassRisqueFamille rf WHERE rf.idPolice.id= :idp and rf.idEntreprise.idEntreprise= :ide and rf.codeid_retirer is null and rf.lienParente= :c and rf.idRisque.idGroup.id= :idg")
+                .setParameter("idp", police.getId())
+                .setParameter("ide", e.getIdEntreprise())
+                .setParameter("idg", g.getId())
+                .setParameter("c", LienParente.enfant);
+        return q.getResultList();
+
+    }
+}

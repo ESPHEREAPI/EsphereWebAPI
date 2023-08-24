@@ -1,0 +1,144 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package sante;
+
+import dao.AbstractJpaDAO;
+import dao.OrclassNatureMaladieDao;
+import dao.OrclassPrestataireDao;
+import dao.OrclassRefNatureMaladieDao;
+import dao.orclassRefPrestataireDao;
+import exception.GlobalException;
+import java.util.Date;
+import javax.annotation.Resource;
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionManagement;
+import javax.ejb.TransactionManagementType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.transaction.HeuristicMixedException;
+import javax.transaction.HeuristicRollbackException;
+import javax.transaction.NotSupportedException;
+import javax.transaction.RollbackException;
+import javax.transaction.SystemException;
+import javax.transaction.UserTransaction;
+import modele.OrclassEntreprises;
+import modele.OrclassNatureMaladie;
+import modele.OrclassPrestataire;
+import modele.OrclassRefNatureMaladie;
+import modele.orclassRefPrestataire;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ *
+ * @author JIATOU FRANCK
+ */
+@Stateless
+
+@TransactionManagement(TransactionManagementType.BEAN)
+public class Sinistre implements ISinistre {
+    
+    @Resource
+    private UserTransaction tx;
+    @PersistenceContext(unitName = AbstractJpaDAO.PersistanceUnit)
+    private EntityManager em;
+    Logger logger = LoggerFactory.getLogger(Sante.class);
+    @EJB
+    orclassRefPrestataireDao refPrestataireDao;
+    @EJB
+    OrclassPrestataireDao prestataireDao;
+    @EJB
+    OrclassNatureMaladieDao natureMaladieDao;
+       @EJB
+    OrclassRefNatureMaladieDao refNatureMaladieDao;
+
+    // Add business logic below. (Right-click in editor and choose
+    // "Insert Code > Add Business Method")
+    @Override
+    public String creationPrestataire(OrclassEntreprises e, orclassRefPrestataire ref, OrclassPrestataire p) {
+          String message="";
+        try {
+            tx.begin();
+            OrclassPrestataire pr = null;
+            orclassRefPrestataire refp = null;
+          
+            refp = refPrestataireDao.findEntityHavingValue("code", ref.getCode());
+            if (refp == null) {
+                refp = new orclassRefPrestataire(ref.getCode(), ref.getLibelle());
+                refp.setStatutPrestataire(ref.getStatutPrestataire());
+                em.persist(refp);
+            } else {
+                refp = em.merge(refp);
+            }
+            pr = prestataireDao.finkey(refp, e);
+            if (pr == null) {
+                pr = new OrclassPrestataire();
+                pr.setDateCreation(new Date());
+                pr.setIdEntreprise(e);
+                pr.setIdRefPrestataire(refp);
+                em.persist(pr);
+            }
+            
+            tx.commit();
+            message=exception.Success.INSERT_SUCCESS.name();
+            
+        } catch (NotSupportedException | SystemException | RollbackException | HeuristicMixedException | HeuristicRollbackException | SecurityException ex) {
+            try {
+                message=exception.Error.INSERT_ERROR.name();
+                tx.rollback();
+                throw ex;
+            } catch (Exception exc) {
+                
+            }
+            
+        }
+        return message;
+    }
+
+    @Override
+    public String creationNatureMaladie(OrclassEntreprises e, OrclassRefNatureMaladie ref, OrclassNatureMaladie p) {
+       
+        String message="";
+        try {
+            tx.begin();
+            OrclassNatureMaladie nm = null;
+            OrclassRefNatureMaladie refNm = null;
+          
+            refNm = refNatureMaladieDao.findEntityHavingValue("code", ref.getCode());
+            if (refNm == null) {
+                refNm = new OrclassRefNatureMaladie(ref.getCode(), ref.getLibelle());
+            
+                em.persist(refNm);
+            } else {
+                refNm = em.merge(refNm);
+            }
+            nm = natureMaladieDao.finkey(refNm, e);
+            if (nm == null) {
+                nm = new OrclassNatureMaladie();
+                nm.setDateCreation(new Date());
+                nm.setIdEntreprise(e);
+                nm.setIdRefNatureMaladie(refNm);
+                em.persist(nm);
+            }
+            
+            tx.commit();
+            message=exception.Success.INSERT_SUCCESS.name();
+            
+        } catch (NotSupportedException | SystemException | RollbackException | HeuristicMixedException | HeuristicRollbackException | SecurityException ex) {
+            try {
+                message=exception.Error.INSERT_ERROR.name();
+                tx.rollback();
+                throw ex;
+            } catch (Exception exc) {
+                
+            }
+            
+        }
+        return message;  
+        
+    }
+}

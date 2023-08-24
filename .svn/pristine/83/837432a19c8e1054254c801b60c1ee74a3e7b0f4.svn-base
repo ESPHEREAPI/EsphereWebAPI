@@ -1,0 +1,138 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package modele;
+
+import enums.SortSinistre;
+import enums.SortSinistreMaladie;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.Date;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.persistence.UniqueConstraint;
+
+/**
+ *
+ * @author JIATOU FRANCK
+ */
+@Entity
+@Table(name = "ORCLASS_SIN_MALAD", uniqueConstraints = @UniqueConstraint(columnNames = {"ID_ENTREPRISE", "ID_SINISTRE", "ID_PRESTATION"}))
+public class OrclassSinistreMaladie implements DAOEntry {
+
+    private static final long serialVersionUID = 1L;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "ID_SIN_MAL")
+    private Long id;
+
+    @JoinColumn(name = "ID_ENTREPRISE", referencedColumnName = "ID_ENTREPRISE")
+    @ManyToOne(optional = false)
+    private OrclassEntreprises idEntreprise;
+    @JoinColumn(name = "ID_SINISTRE", referencedColumnName = "ID_SINISTRE")
+    @ManyToOne(optional = false)
+    private OrclassSinistre idSinistre;
+    @JoinColumn(name = "ID_PRESTATION", referencedColumnName = "ID_PRESTATION")
+    @ManyToOne(optional = false)
+    private OrclassPrestation idPrestation;
+    @JoinColumn(name = "ID_UTILISATEUR", referencedColumnName = "ID_UTILISATEUR")
+    @ManyToOne(optional = false)
+    private OrclassUtilisateurs idUtilisateurs;
+    @JoinColumn(name = "ID_EVENT", referencedColumnName = "ID_EVENT")
+    @ManyToOne(optional = true)
+    private OrclassEvenement idEvenement;
+    @JoinColumn(name = "ID_INTERV", referencedColumnName = "ID_INTERV")
+    @ManyToOne(optional = true)
+    private OrclassIntervenant idIntervenant;
+    private int cle;
+    @Column(name = "DATE_ACTE")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date date_acte;
+    @Column(name = "NOMBRE_ACTE_REEL")
+    private BigDecimal nombre_acte_reel;
+    @Column(name = "NOMBRE_CLE_REEL")
+    private BigDecimal nombre_cle_reel;
+    @Column(name = "DEBOURSEMENT_REEL")
+    private BigDecimal deboursement_reel;
+    @Column(name = "NOMBRE_ACTE_REMB")
+    private BigDecimal nombre_acte_remb;
+    @Column(name = "NOMBRE_CLE_REMB")
+    private BigDecimal nombre_cle_remb;
+    @Column(name = "MONTANT_EXCLURE")
+    private BigDecimal montant_exclure;
+    private BigDecimal base_remboursement;
+    private BigDecimal remb_externe;
+    private Double taux;
+    private BigDecimal montant_remb;
+    private String motif_sort;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "SORT")
+    private SortSinistreMaladie sort;
+    @Column(name = "DATE_CREATION")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date dateCreation;
+    @Column(name = "DATE_SAISIR")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date date_saisir;
+    @Column(name = "DATE_MODIFIER")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date date_modification;
+    @Column(name = "DATE_VALIDE")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date date_valider;
+    @Column(name = "DATE_REJETTER")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date date_rejetter;
+    String Observation;
+    private String saisir_par;
+    private String modifier_par;
+    private String valider_par;
+    private String rejeter_par;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (id != null ? id.hashCode() : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        // TODO: Warning - this method won't work in the case the id fields are not set
+        if (!(object instanceof OrclassSinistreMaladie)) {
+            return false;
+        }
+        OrclassSinistreMaladie other = (OrclassSinistreMaladie) object;
+        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "modele.OrclassSinistreMaladie[ id=" + id + " ]";
+    }
+
+}

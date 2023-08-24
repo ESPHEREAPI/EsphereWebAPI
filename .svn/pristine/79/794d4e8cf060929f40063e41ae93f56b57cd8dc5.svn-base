@@ -1,0 +1,63 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package dao;
+
+import java.util.List;
+import javax.ejb.Stateless;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import modele.OrclassEntreprises;
+import modele.OrclassMedicament;
+import modele.OrclassMedicamentSinistreMaladie;
+import modele.OrclassSinistreMaladie;
+
+/**
+ *
+ * @author JIATOU FRANCK
+ */
+@Stateless
+public class OrclassMedicamentSinistreMaladieDao extends AbstractJpaDAO<OrclassMedicamentSinistreMaladie>{
+
+    // Add business logic below. (Right-click in editor and choose
+    // "Insert Code > Add Business Method")
+      private static final long serialVersionUID = 1L;
+    @PersistenceContext(unitName = AbstractJpaDAO.PersistanceUnit)
+    private EntityManager em;
+
+    @Override
+    protected Class<OrclassMedicamentSinistreMaladie> getEntityClass() {
+        return OrclassMedicamentSinistreMaladie.class;
+    }
+
+    @Override
+    protected EntityManager getEntityManager() {
+       return em;
+    }
+    //verification d une ligne d enregistrement
+    public OrclassMedicamentSinistreMaladie finKey(OrclassEntreprises e,OrclassSinistreMaladie sm,OrclassMedicament med){
+        Query q;
+        q=em.createQuery("SELECT m FROM OrclassMedicamentSinistreMaladie m WHERE m.idEntreprise= :e and m.idMedicament= :m and m.idSinistreMaladie= :sm")
+                .setParameter("e", e)
+                .setParameter("m", med)
+                .setParameter("sm", sm)
+                ;
+        if (q.getResultList().isEmpty()) {
+            return null;
+        }
+        
+        return (OrclassMedicamentSinistreMaladie) q.getResultList().toArray()[0];
+    }
+    
+     public List<OrclassMedicamentSinistreMaladie> listeMedicaleBySinistreMaladie(OrclassEntreprises e, OrclassSinistreMaladie sinMad) {
+       Query q;
+        q=em.createQuery("SELECT sm FROM OrclassMedicamentSinistreMaladie sm WHERE sm.idEntreprise= :e and sm.idSinistreMaladie= :sinmad")
+                .setParameter("e", e)
+                .setParameter("sinmad", sinMad)
+                ;
+        return q.getResultList();
+    }
+}

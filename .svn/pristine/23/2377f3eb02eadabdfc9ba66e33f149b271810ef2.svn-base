@@ -1,0 +1,306 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                template="/template/template_2.xhtml">
+
+
+    <!--<ui:define name="title">Empty Page</ui:define>-->
+
+    <ui:define name="viewname">
+        <li>PAGES</li>
+        <li><i class="pi pi-chevron-right"></i></li>
+        <li>
+            <p:link outcome="/parametrage/exonerationTaxe">#{msg['exoneration_taxe']}</p:link>
+        </li>
+    </ui:define>
+
+    <ui:param name="viewname" value="PRINCIPAL PAGE" />
+
+    <ui:define name="content">
+        <div class="p-grid">
+            <div class="p-col">
+                <div class="card">
+                    <p:tabView  id="tabprincipal">
+                        <p:tab title="#{msg['exoneration']}">
+                            <h:form id="form1">
+                                <p:growl id="msg" showDetail="true" skipDetailIfEqualsSummary="true"/>
+                                <p:commandButton value="#{msg['bouton.ajouter']}" icon="pi pi-plus"   
+                                                 styleClass="success-button" style="margin-right: .5rem"        onclick="PF('manageExonerationDialog').show()"  />
+
+                                <p:dataTable var="e" value="#{exonerationTaxeController.listExoneration}" paginator="true" rows="10" widgetVar="exonerationTable"  id="idExonerationTable"
+                                             paginatorAlwaysVisible="false" rowsPerPageTemplate="10,15,50,100,500,1000" filterEvent="enter" filteredValue="#{exonerationTaxeController.filterExoneration}"
+                                             paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                             currentPageReportTemplate=" Total :{totalRecords} "
+                                             emptyMessage="#{msg['emptyMessage']}"  style="width: 100%;"   
+
+                                             scrollable="true" >
+
+
+
+                                    <f:facet name="header">
+
+                                        <p:outputPanel>
+                                            <h:outputText value="#{msg['recherche']} : "/>
+            
+                                            <p:inputText id="globalFilter"
+                                                         onkeyup="PF('exonerationTable').filter()"
+                                                         style="width:350px" placeholder="Search text"   immediate="true"/>
+                                        </p:outputPanel>
+
+                                    </f:facet>
+                                    <p:column  >
+                                        <p:commandButton  icon="pi pi-trash"   title="#{msg['supprimer']}"
+                                                          styleClass="danger-button" style="margin-right: .5rem"    onclick="PF('manageDeleteDialog').show()"  >
+                                            <f:setPropertyActionListener value="#{e}" target="#{exonerationTaxeController.exoneration}"/>
+                                        </p:commandButton>
+                                        <p:commandButton  icon="pi pi-pencil"   title="#{msg['bouton.modifier']}" update=":form11"
+                                                          styleClass="secondary-button" style="margin-right: .5rem" oncomplete="PF('manageExonerationDialog').show()" >
+                                            <f:setPropertyActionListener value="#{e}" target="#{exonerationTaxeController.exoneration}"/>
+
+                                        </p:commandButton>  
+
+                                    </p:column>
+
+
+
+                                    <p:column headerText="id"  style="width: 50px">
+                                        <h:outputText value="#{e.idExoneration}"/>
+                                    </p:column>
+                                    <p:column headerText="#{msg['code']}" sortBy="#{e.code}" filterBy="#{e.code}"  >
+                                        <h:outputText value="#{e.code}"/>
+                                    </p:column>
+                                    <p:column headerText="#{msg['libelle']}" sortBy="#{e.libelle}" filterBy="#{e.libelle}"  >
+                                        <span class="flag flag-#{e.libelle}" style="width: 30px; height: 20px"/>
+                                        <h:outputText style="vertical-align: middle; margin-left: .5rem"
+                                                      value="#{e.libelle}"/>
+                                    </p:column>
+                                   
+                                </p:dataTable>
+
+                            </h:form> 
+                        </p:tab>
+                        <p:tab title="#{msg['exoneration_taxe']}">
+                           
+
+                            <h:form id="form2">
+                                <p:growl id="msg2" showDetail="true" skipDetailIfEqualsSummary="true"/>
+                                <p:toolbarGroup>
+                                    <h:outputLabel value="#{msg['exoneration']}: " style="float: left" />
+                                    <h:outputLabel style="float: left" />
+                                    <h:outputLabel style="float: left" />
+                                    <h:outputLabel style="float: left" />
+                                    <h:outputLabel style="float: left" />
+                                    
+                                    
+
+                                    <p:selectOneMenu value="#{exonerationTaxeController.exonerationSelect}" style=" float: left; " 
+                                                     converter="#{genericConverter}" id="type_carateristique" validator="requiredValidator" required="true" var="e" filter="true" filterMatchMode="contains" >
+                                        <f:selectItem itemLabel="Select" itemValue="#{null}" />
+                                        <f:selectItems value="#{exonerationTaxeController.listExoneration}" var="dr" itemLabel="#{dr.code} #{dr.libelle}" itemValue="#{dr}"/>
+
+                                        <p:column>
+                                            #{e.code}  #{e.libelle} 
+                                        </p:column>
+                                        <p:ajax event="change"  listener="#{exonerationTaxeController.chargeExonerationTaxeByExoneration()}" update="tabprincipal:form2:idExonerationTaxeTable" process="@this"/>
+                                    </p:selectOneMenu>  
+
+                                </p:toolbarGroup>
+
+                                <br/> 
+                                <br/>
+                                <br/>
+                               
+                                
+                                
+                             
+                                <p:dataTable var="et" value="#{exonerationTaxeController.listExonerationTaxe}"  widgetVar="exonerationTaxeTable" 
+                                             filteredValue="#{exonerationTaxeController.filterExonerationTaxe}"    scrollable="true" scrollHeight="300"
+
+                                     emptyMessage="#{msg['emptyMessage']}"    id="idExonerationTaxeTable"
+
+                                     >
+
+                            <f:facet name="header">
+                                <p:outputPanel>
+                                    <h:outputText value="#{msg['recherche']} : "/>
+
+                                    <p:inputText id="globalFilter"
+                                                 onkeyup="PF('exonerationTaxeTable').filter()"
+                                                 style="width:150px" placeholder="Search text..."  > 
+
+                                    </p:inputText>  
+
+
+                                </p:outputPanel>
+
+                            </f:facet> 
+                                <p:column style="width: 100px" >
+
+                                      <p:commandButton icon="pi pi-plus"  title="#{msg['bouton.ajouter']}" 
+                                                       styleClass="success-button" style="margin-right: .5rem"  rendered="#{et.idExonerationTaxe==null}"   actionListener="#{exonerationTaxeController.chargeDialog()}"  >
+                      
+                                  </p:commandButton>
+                                <p:commandButton  icon="pi pi-check-circle"  
+                                                  styleClass="success-button" style="margin-right: .5rem"  rendered="#{et.idExonerationTaxe !=null}"   disabled="true" >
+
+                                </p:commandButton>
+
+                                <p:commandButton  icon="pi pi-trash"   title="#{msg['supprimer']}"
+                                                  styleClass="danger-button" style="margin-right: .5rem"  rendered="#{et.idExonerationTaxe !=null}"   onclick="PF('managDeleteDialog2').show()"  actionListener="#{exonerationTaxeController.showDetailsExonerationTaxe(et)}"  >
+                                    <f:setPropertyActionListener value="#{et}" target="#{exonerationTaxeController.exonerationTaxe}"   />
+                                </p:commandButton>
+
+                            </p:column>
+
+                                 <p:column headerText="#{msg['code']}" sortBy="#{et.idTypeTaxe.code}" filterBy="#{et.idTypeTaxe.code}" style=" float: left;margin-right: .5rem" >
+                                        <h:outputText value="#{et.idTypeTaxe.code}" /> 
+                               
+                                  </p:column>
+                                    <p:column headerText="#{msg['libelle']}" sortBy="#{et.idTypeTaxe.libelle}" filterBy="#{et.idTypeTaxe.libelle}" style="float: left">
+                                        <h:outputText value="#{et.idTypeTaxe.libelle}"/>
+                                     </p:column>
+
+                        </p:dataTable>
+
+                       
+                                <p:dialog header="#{msg['confirmation']}" width="1000" showEffect="fade" modal="true" widgetVar="manageConfirmeDialog" responsive="true">
+                            <center>
+                                <h4>#{msg['confirmation.action.update']}</h4> 
+                            </center>
+                            <f:facet name="footer">
+                                <center>
+                                    <p:commandButton value="#{msg['bouton.valider']}"     actionListener="#{exonerationTaxeController.removeTypeTaxeByListe()}" oncomplete=" PF('manageConfirmeDialog').hide()" update="tabprincipal:form1,tabprincipal:form1:msg"  />
+                                    <p:spacer width="10"/>
+                                    <p:commandButton value="#{msg['bouton.annuler']}" onclick="PF('manageConfirmeDialog').hide()"/>
+                                </center>
+                            </f:facet>
+                              </p:dialog>
+                            </h:form>
+
+                        </p:tab>
+                    </p:tabView>
+                    <h:form id="form11">
+                        <p:dialog header="#{msg['edition.exoneration']}" width="950" showEffect="fade" modal="true" widgetVar="manageExonerationDialog" responsive="true" id="dgl">
+
+                            <p:fieldset  style=" color: #48b175" >
+                                <p:panelGrid columns="4" layout="flex" id="grid1" 
+                                             columnClasses="p-col-12 p-md-3 p-xl-2, p-col-12 p-md-9 p-xl-4, p-col-12 p-md-3 p-xl-2, p-col-12 p-md-9 p-xl-4"
+                                             contentStyleClass="p-align-baseline ui-fluid"  >
+                                    <p:outputLabel  value="#{msg['code']}"/>
+
+                                    <p:inputText id="code"  placeholder="#{msg['SAISIR']}"  value="#{exonerationTaxeController.exoneration.code}"  style="text-transform: uppercase; width: 75px" validator="requiredValidator">
+                                        <f:ajax event="blur" render="code"/>
+                                    </p:inputText>
+
+                                    <p:outputLabel  value="#{msg['libelle']}"/>
+
+                                    <p:inputText id="libelle"  placeholder="#{msg['SAISIR']}"  value="#{exonerationTaxeController.exoneration.libelle}"  style="text-transform: uppercase; width: 300px" validator="requiredValidator" >
+                                        <f:ajax event="blur" render="libelle"/>
+                                    </p:inputText>
+                                   
+
+                                </p:panelGrid>
+
+                            </p:fieldset>
+
+                            <f:facet name="footer">
+                                <center>
+                                    <p:commandButton value="#{msg['bouton.enregistrer']}" icon="pi pi-check"   process="@this" 
+                                                     styleClass="success-button" style="margin-right: .5rem"  rendered="#{exonerationTaxeController.exoneration.idExoneration==null}"  actionListener="#{exonerationTaxeController.addExoneration()}" ajax="false" id="add"  oncomplete="#{exonerationTaxeController.chargeDialog()}" />
+                                    <p:commandButton value="#{msg['bouton.modifier']}" icon="pi pi-pencil" rendered="#{exonerationTaxeController.exoneration.idExoneration!=null}"   update="tabprincipal:form1,tabprincipal:form1:msg" process="@this"  
+                                                     styleClass="secondary-button p-mr-2 p-mb-2" style="margin-right: .5rem"    actionListener="#{exonerationTaxeController.updateExoneration()}" oncomplete="PF('manageExonerationDialog').hide()"  id="update" ajax="false"/>
+
+                                    <p:commandButton value="#{msg['bouton.fermer']}" icon="pi pi-times"  
+                                                     styleClass="warning-button p-mr-2 p-mb-2" style="margin-right: .5rem"  onclick="PF('manageExonerationDialog').hide()" actionListener="#{exonerationTaxeController.reset()}"  update="@form" process="@all" />
+
+                                </center>
+                            </f:facet>
+                        </p:dialog>
+
+
+                    </h:form>
+                    
+                     <h:form id="form22">
+                        <p:dialog widgetVar="manageDeleteDialog" header="#{msg['welcome.dlg.header']}" closable="true" width="500" height="75" showEffect="fade" modal="true" responsive="true">
+                            <center>
+                                <h:outputText value="#{msg['welcome.msgDelete']}" />  
+                            </center>
+
+                            <f:facet name="footer">
+                                <center>
+                                    <p:commandButton value="OK" actionListener="#{exonerationTaxeController.deleteExoneration}" update="tabprincipal:form1,tabprincipal:form1:msg"  process="@this" onclick="PF('manageDeleteDialog').hide()" />
+                                    <p:spacer width="10"/>
+                                    <p:commandButton value="#{msg['bouton.annuler']}" onclick="PF('manageDeleteDialog').hide()" />  
+                                </center>
+                            </f:facet>
+                        </p:dialog>
+                         
+                         
+                          
+
+                      
+                         
+                          <p:dialog header="#{msg['confirmation']}" width="1000" showEffect="fade" modal="true" widgetVar="managDeleteDialog2" responsive="true">
+                            <center>
+                                <h4>#{msg['welcome.msgDelete']}</h4> 
+                            </center>
+                            <f:facet name="footer">
+                                <center>
+                                    <p:commandButton value="#{msg['bouton.valider']}"     actionListener="#{exonerationTaxeController.deleteExonerationTaxe()}" oncomplete=" PF('managDeleteDialog2').hide()" update="tabprincipal:form2:idExonerationTaxeTable,tabprincipal:form2,tabprincipal:form2:msg2"  />
+                                    <p:spacer width="10"/>
+                                    <p:commandButton value="#{msg['bouton.annuler']}" onclick="PF('managDeleteDialog2').hide()" />
+                                </center>
+                            </f:facet>
+
+                        </p:dialog>
+                         
+                         <p:dialog header="#{msg['welcome.bienvenue']}" width="650" showEffect="fade" modal="true" widgetVar="manageTypeTaxeDialog" responsive="true">
+
+                             <p:dataTable id="idTypeTaxeTable" var="t" value="#{exonerationTaxeController.listTypeTaxe}" 
+                                          selection="#{exonerationTaxeController.selecteTypeTaxes}" rowKey="#{t.idTypeTaxe}"
+                                         style="margin-bottom:0" paginator="true" rows="5"  widgetVar="typeTaxeTable" >
+                                
+                                <f:facet name="header">
+                                    <p:outputPanel>
+                                        <h:outputText value="#{msg['recherche']} : "/>
+
+                                        <p:inputText id="globalFilter"
+                                                     onkeyup="PF('typeTaxeTable').filter()"
+                                                     style="width:150px" placeholder="Search text"  />
+                                    </p:outputPanel>
+
+                                </f:facet>
+
+                                <p:column selectionMode="multiple" style="width:16px;text-align:center" id="check"/>
+                                <p:column headerText="Code" sortBy="#{t.code}" filterBy="#{t.code}" >
+                                    <h:outputText value="#{t.code}" />
+                                </p:column>
+
+                                <p:column headerText="Name" sortBy="#{t.libelle}" filterBy="#{t.libelle}">
+                                    <h:outputText value="#{t.libelle}" />
+                                </p:column>
+
+                                <f:facet name="footer">
+                                    <center>
+                                        <p:commandButton value="#{msg['bouton.valider']}"     actionListener="#{exonerationTaxeController.saveExonerationTaxesWithSelectedTypeTaxe()}" oncomplete=" PF('manageTypeTaxeDialog').hide()" update="tabprincipal:form2:idExonerationTaxeTable,tabprincipal:form2" />
+                                        <p:spacer width="10"/>
+                                        <p:commandButton value="#{msg['bouton.annuler']}" onclick="PF('manageTypeTaxeDialog').hide()" actionListener="#{exonerationTaxeController.initialSelecteTypeTaxe()}" update="tabprincipal:form1,tabprincipal:form2"/>
+                                    </center>
+                                </f:facet>
+                            </p:dataTable>
+
+
+
+
+
+                        </p:dialog>
+                     </h:form>
+                    
+                </div>
+            </div>
+        </div>
+    </ui:define>
+
+</ui:composition>

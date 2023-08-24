@@ -1,0 +1,281 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package dao;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.ejb.Stateless;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import modele.OrclassBranches;
+import modele.OrclassCategories;
+import modele.OrclassEntreprises;
+import modele.OrclassIntermediaires;
+import modele.OrclassPolice;
+//import modele.OrclassPolicesss;
+import modele.OrclassUtilisateurs;
+
+/**
+ *
+ * @author hp
+ */
+@Stateless
+public class OrclassPoliceDao extends AbstractJpaDAO<OrclassPolice> {
+
+    // Add business logic below. (Right-click in editor and choose
+    // "Insert Code > Add Business Method")
+    @PersistenceContext(unitName = AbstractJpaDAO.PersistanceUnit)
+    private EntityManager em;
+
+    @Override
+    protected Class<OrclassPolice> getEntityClass() {
+        return OrclassPolice.class;
+    }
+
+    @Override
+    protected EntityManager getEntityManager() {
+        return em;
+    }
+
+    /*
+    recuperation dela dernier ligne de police pour une agence pour une production precise
+     */
+    public BigInteger retourneNumeroPoliceByAgenceForCategorie(OrclassIntermediaires agence, OrclassCategories cat, OrclassEntreprises e) {
+        Query q, q2;
+//        OrclassPolicePK pk = null;
+        OrclassPolice police = null;
+        q = em.createQuery("SELECT  p FROM OrclassPolice p WHERE p.id=(SELECT  MAX (po.id) FROM OrclassPolice po WHERE po.idIntermediaire= :idIntermediaire AND po.idCategories.idCategorie= :idCategorie and po.idEntreprises.idEntreprise= :idEntreprise)")
+                .setParameter("idIntermediaire", agence)
+                .setParameter("idCategorie", cat.getIdCategorie())
+//                 .setParameter("valeur", Boolean.FALSE)
+//                .setParameter("print", Boolean.TRUE)
+                .setParameter("idEntreprise", e.getIdEntreprise());
+        if (q.getResultList().isEmpty()) {
+            return BigInteger.ZERO;
+        }
+//        else {
+//            pk = (OrclassPolicePK) q.getResultList().toArray()[0];
+//            q2 = em.createQuery("SELECT  p FROM OrclassPolice p WHERE p.policePK= :id AND  p.idEntreprises.idEntreprise= :idEntreprise")
+//                    .setParameter("id", pk)
+//                    .setParameter("idEntreprise", e.getIdEntreprise());
+//            if (q2.getResultList().isEmpty()) {
+//                return BigInteger.ZERO;
+//            }
+//            police = (OrclassPolice) q2.getResultList().toArray()[0];
+//            if (police != null && police.getPolicePK() != null) {
+//                return police.getPolicePK().getNumero_polic();
+//            }
+//        }
+
+        police = (OrclassPolice) q.getResultList().toArray()[0];
+        return police.getNumero_police();
+    }
+    
+      
+    public BigInteger retourneNumeroPoliceByAgenceForCategorieForValidation(OrclassIntermediaires agence, OrclassCategories cat, OrclassEntreprises e) {
+        Query q, q2;
+//        OrclassPolicePK pk = null;
+        OrclassPolice police = null;
+        q = em.createQuery("SELECT  p FROM OrclassPolice p WHERE p.idIntermediaire= :idIntermediaire AND p.idCategories.idCategorie= :idCategorie and p.idEntreprises.idEntreprise= :idEntreprise and p.validation= :valeur and p.police is not null ORDER BY p.police DESC")
+                .setParameter("idIntermediaire", agence)
+                .setParameter("idCategorie", cat.getIdCategorie())
+                 .setParameter("valeur", Boolean.TRUE)
+                .setParameter("idEntreprise", e.getIdEntreprise());
+        if (q.getResultList().isEmpty()) {
+            return BigInteger.ZERO;
+        }
+
+
+        police = (OrclassPolice) q.getResultList().toArray()[0];
+        if (police.getPolice()==null) {
+            return BigInteger.ZERO;
+        }
+        return police.getPolice().toBigInteger();
+    }
+
+    /*
+    recuperation d une ligne existance
+     */
+    public OrclassPolice finKey(OrclassIntermediaires agence, BigInteger numero_police, OrclassEntreprises e,OrclassCategories cat) {
+        Query q;
+        q = em.createQuery("SELECT p FROM OrclassPolice p WHERE p.idIntermediaire= :idIntermediaire AND p.numero_police= :np AND p.idEntreprises.idEntreprise= :idEntreprise and (p.validation=0 or p.validation=1) and p.idCategories.idCategorie= :cat")
+                .setParameter("idEntreprise", e.getIdEntreprise())
+                .setParameter("np", numero_police)
+//                 .setParameter("valeur", Boolean.FALSE)
+                .setParameter("cat", cat.getIdCategorie())
+                .setParameter("idIntermediaire", agence);
+        if (q.getResultList().isEmpty()) {
+            return null;
+        }
+        return (OrclassPolice) q.getResultList().toArray()[0];
+    }
+        public OrclassPolice finKey( BigDecimal numero_police, OrclassEntreprises e) {
+        Query q;
+        q = em.createQuery("SELECT p FROM OrclassPolice p WHERE  p.police= :np AND p.idEntreprises.idEntreprise= :idEntreprise and p.validation= :value ")
+                .setParameter("idEntreprise", e.getIdEntreprise())
+                .setParameter("np", numero_police)
+//                 .setParameter("valeur", Boolean.FALSE)
+                .setParameter("value", Boolean.TRUE);
+            
+        if (q.getResultList().isEmpty()) {
+            return null;
+        }
+        return (OrclassPolice) q.getResultList().toArray()[0];
+    }
+     public OrclassPolice finKeyPoliceValide(OrclassIntermediaires agence, BigInteger numero_police, OrclassEntreprises e,OrclassCategories cat) {
+        Query q;
+        q = em.createQuery("SELECT p FROM OrclassPolice p WHERE p.idIntermediaire= :idIntermediaire AND p.police= :np AND p.idEntreprises.idEntreprise= :idEntreprise and p.validation= :valeur and p.idCategories= :cat")
+                .setParameter("idEntreprise", e.getIdEntreprise())
+                .setParameter("np", BigDecimal.valueOf(numero_police.doubleValue()))
+                 .setParameter("valeur", Boolean.TRUE)
+                 .setParameter("cat", cat)
+                .setParameter("idIntermediaire", agence);
+        if (q.getResultList().isEmpty()) {
+            return null;
+        }
+        return (OrclassPolice) q.getResultList().toArray()[0];
+    }
+
+    public List<OrclassPolice> listeContraByAgence(OrclassIntermediaires agence, OrclassEntreprises e,OrclassUtilisateurs user) {
+        Query q;
+        q = em.createQuery("SELECT p FROM OrclassPolice p where p.idIntermediaire.idIntermediaire= :idIntermediaire and p.idEntreprises.idEntreprise= :idEntreprise AND p.annulation= :annul and p.idUtilisateur= :user")
+                .setParameter("idEntreprise", e.getIdEntreprise())
+                .setParameter("idIntermediaire", agence.getIdIntermediaire())
+                .setParameter("user", user)
+                .setParameter("annul", Boolean.FALSE)
+                ;
+        return q.getResultList();
+    }
+        public List<OrclassPolice> listeContraByAgence(OrclassIntermediaires agence, OrclassEntreprises e,OrclassUtilisateurs user,OrclassBranches br) {
+        Query q;
+        q = em.createQuery("SELECT p FROM OrclassPolice p where p.idIntermediaire.idIntermediaire= :idIntermediaire and p.idEntreprises.idEntreprise= :idEntreprise AND p.annulation= :annul and p.idUtilisateur= :user and p.idCategories.idBranche= :br")
+                .setParameter("idEntreprise", e.getIdEntreprise())
+                .setParameter("idIntermediaire", agence.getIdIntermediaire())
+                .setParameter("user", user)
+                .setParameter("br", br)
+                .setParameter("annul", Boolean.FALSE)
+                ;
+        return q.getResultList();
+    }
+    public List<OrclassPolice> listeContraByAgenceForAllEtat(OrclassIntermediaires agence, OrclassEntreprises e,OrclassUtilisateurs user) {
+        Query q;
+        q = em.createQuery("SELECT p FROM OrclassPolice p where p.idIntermediaire.idIntermediaire= :idIntermediaire and p.idEntreprises.idEntreprise= :idEntreprise AND (p.annulation= 1 or p.annulation=0)  and (p.validation=1 or p.validation=true) and p.idUtilisateur= :user")
+                .setParameter("idEntreprise", e.getIdEntreprise())
+                .setParameter("idIntermediaire", agence.getIdIntermediaire())
+                .setParameter("user", user)
+//                .setParameter("annul", Boolean.FALSE)
+                ;
+        return q.getResultList();
+    }
+    
+     public List<OrclassPolice> listeContraByAgence(OrclassIntermediaires agence, OrclassEntreprises e) {
+        Query q;
+        q = em.createQuery("SELECT p FROM OrclassPolice p where p.idIntermediaire.idIntermediaire= :idIntermediaire and p.idEntreprises.idEntreprise= :idEntreprise AND p.annulation= :annul ")
+                .setParameter("idEntreprise", e.getIdEntreprise())
+                .setParameter("idIntermediaire", agence.getIdIntermediaire())
+//                .setParameter("user", user)
+                .setParameter("annul", Boolean.FALSE)
+                ;
+        return q.getResultList();
+    }
+       public List<OrclassPolice> listeContraByAgence(OrclassIntermediaires agence, OrclassEntreprises e,OrclassBranches br) {
+        Query q;
+        q = em.createQuery("SELECT p FROM OrclassPolice p where p.idIntermediaire.idIntermediaire= :idIntermediaire and p.idEntreprises.idEntreprise= :idEntreprise AND p.annulation= :annul  and p.idCategories.idBranche= :br")
+                .setParameter("idEntreprise", e.getIdEntreprise())
+                .setParameter("idIntermediaire", agence.getIdIntermediaire())
+                .setParameter("br", br)
+                .setParameter("annul", Boolean.FALSE)
+                ;
+        return q.getResultList();
+    }
+     
+     
+         public List<OrclassPolice> listeContraByCompagny(OrclassEntreprises e) {
+        Query q;
+        q = em.createQuery("SELECT p FROM OrclassPolice p where p.validation= :val and p.idEntreprises.idEntreprise= :idEntreprise AND p.annulation= :annul ")
+                .setParameter("idEntreprise", e.getIdEntreprise())
+//                .setParameter("idIntermediaire", agence.getIdIntermediaire())
+//                .setParameter("user", user)
+                .setParameter("annul", Boolean.FALSE)
+                .setParameter("val", Boolean.TRUE)
+                ;
+        return q.getResultList();
+    }
+           public List<OrclassPolice> listeContraValideByAgence(OrclassIntermediaires agence, OrclassEntreprises e) {
+        Query q;
+        q = em.createQuery("SELECT p FROM OrclassPolice p where p.idIntermediaire.idIntermediaire= :idIntermediaire and p.idEntreprises.idEntreprise= :idEntreprise AND p.annulation= :annul and p.validation= :val")
+                .setParameter("idEntreprise", e.getIdEntreprise())
+                .setParameter("idIntermediaire", agence.getIdIntermediaire())
+//                .setParameter("user", user)
+                .setParameter("annul", Boolean.FALSE)
+                .setParameter("val", Boolean.TRUE)
+                ;
+        return q.getResultList();
+      }
+        public List<OrclassPolice> listeContraValideByAgence(OrclassIntermediaires agence, OrclassEntreprises e,OrclassBranches br) {
+        Query q;
+        q = em.createQuery("SELECT p FROM OrclassPolice p where p.idIntermediaire.idIntermediaire= :idIntermediaire and p.idEntreprises.idEntreprise= :idEntreprise AND p.annulation= :annul and p.validation= :val and p.idCategories.idBranche= :br")
+                .setParameter("idEntreprise", e.getIdEntreprise())
+                .setParameter("idIntermediaire", agence.getIdIntermediaire())
+                .setParameter("br", br)
+                .setParameter("annul", Boolean.FALSE)
+                .setParameter("val", Boolean.TRUE)
+                ;
+        return q.getResultList();
+      }    
+         public List<OrclassPolice> listeContraByAgenceForAllEtat(OrclassIntermediaires agence, OrclassEntreprises e) {
+        Query q;
+        q = em.createQuery("SELECT p FROM OrclassPolice p where p.idIntermediaire.idIntermediaire= :idIntermediaire and p.idEntreprises.idEntreprise= :idEntreprise AND (p.annulation=0 or p.annulation=1)  and (p.validation=1 or p.validation=true)")
+                .setParameter("idEntreprise", e.getIdEntreprise())
+                .setParameter("idIntermediaire", agence.getIdIntermediaire())
+//                .setParameter("user", user)
+//                .setParameter("annul", Boolean.FALSE)
+                ;
+        return q.getResultList();
+    }
+    /*
+    verification si une police proppose a ete imprimer 
+    */
+    public Boolean policehaveNumepolice(OrclassEntreprises e,OrclassIntermediaires agence,OrclassCategories cat,BigInteger police){
+        Query q;
+        q=em.createQuery("SELECT p FROM  OrclassPolice p where p.numero_police= :number and p.idEntreprises= :e and p.idIntermediaire= :agence and p.idCategories= :cat")
+                .setParameter("agence", agence)
+                .setParameter("cat", cat)
+                .setParameter("e", e)
+                .setParameter("number", police);
+        if (q.getResultList().isEmpty()) {
+            return Boolean.FALSE;
+        }
+        return !q.getResultList().isEmpty();
+    }
+    
+      public List<Object> getNumeroPoliceWithFilters(OrclassEntreprises e, String Filter) {
+
+        Map<String, Object> param = new HashMap<>();
+
+        Query q = null;
+
+        //si le filtre existe
+        String request = "SELECT p.police FROM OrclassPolice p   WHERE p.idEntreprises.idEntreprise= :idEntreprise";
+//        Query q;
+        if (Filter != null && !Filter.trim().equals("")) {
+            request += " AND p.police like :filter ";
+
+            q = em.createQuery(request)
+                    .setParameter("idEntreprise", e.getIdEntreprise())
+                    .setParameter("filter", "%" + Filter + "%") ;
+
+        }
+
+        return q.getResultList();
+
+    }
+
+}

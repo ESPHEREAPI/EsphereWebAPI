@@ -1,0 +1,385 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package modele;
+
+import enums.SortSinistre;
+import java.io.Serializable;
+import java.util.Date;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.persistence.UniqueConstraint;
+
+/**
+ *
+ * @author JIATOU FRANCK , uniqueConstraints = @UniqueConstraint(columnNames =
+ * {"ID_ENTREPRISE", "ID_RUB_GAR", "NUMERO_ORDRE"})
+ */
+@Entity
+@Table(name = "ORCLASS_SINISTRE", uniqueConstraints = @UniqueConstraint(columnNames = {"ID_ENTREPRISE", "NUMERO_SINISTRE", "ID_POLICE"}))
+public class OrclassSinistre implements DAOEntry {
+
+    private static final long serialVersionUID = 1L;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "ID_SINISTRE")
+    private Long id;
+
+    @JoinColumn(name = "ID_ENTREPRISE", referencedColumnName = "ID_ENTREPRISE")
+    @ManyToOne(optional = false)
+    private OrclassEntreprises idEntreprise;
+    @JoinColumn(name = "ID_POLICE", referencedColumnName = "ID_POLICE")
+    @ManyToOne(optional = false)
+    private OrclassPolice idPolice;
+    @JoinColumn(name = "ID_REGISTRE_SINISTRE", referencedColumnName = "ID_REGISTRE_SINISTRE")
+    @ManyToOne(optional = false)
+    private OrclassRegistreSinistre idRegistreSinistre;
+    @JoinColumn(name = "ID_RISQUE", referencedColumnName = "ID_RISQUE")
+    @ManyToOne(optional = false)
+    private OrclassRisque idRisque;
+    @JoinColumn(name = "ID_GARANTIE", referencedColumnName = "ID_GARANTIE")
+    @ManyToOne(optional = false)
+    private OrclassGarantie idGarantie;
+    @JoinColumn(name = "ID_RUBRIQUE", referencedColumnName = "ID_RUBRIQUE")
+    @ManyToOne(optional = false)
+    private OrclassRubrique idRubrique;
+    @JoinColumn(name = "ID_UTILISATEUR", referencedColumnName = "ID_UTILISATEUR")
+    @ManyToOne(optional = false)
+    private OrclassUtilisateurs idUtilisateurs;
+    @JoinColumn(name = "ID_FACTURE", referencedColumnName = "ID_FACTURE")
+    @ManyToOne(optional = true)
+    private OrclasseFacture idFacture;
+    @JoinColumn(name = "ID_BORDEREAU", referencedColumnName = "ID_BORDEREAU")
+    @ManyToOne(optional = true)
+    private OrclassBordereau idBordereau;
+
+    @JoinColumn(name = "ID_RISQUE_FAM", referencedColumnName = "ID_RISQUE_FAM")
+    @ManyToOne(optional = true)
+    private OrclassRisqueFamille idRisqueFamille;
+    @JoinColumn(name = "ID_PREST", referencedColumnName = "ID_PREST")
+    @ManyToOne(optional = true)
+    private OrclassPrestataire idPrestataire;
+    @JoinColumn(name = "ID_NT_MAL", referencedColumnName = "ID_NT_MAL")
+    @ManyToOne(optional = true)
+    private OrclassNatureMaladie idNatureMaladie;
+     @JoinColumn(name = "ID_INTERMEDIAIRE", referencedColumnName = "ID_INTERMEDIAIRE")
+    @ManyToOne(optional = false)
+    private OrclassIntermediaires idIntermediaire;
+    @Column(name = "NUMERO_SINISTRE")
+    private String numero_sinistre;
+    private String ref_sinistre;
+    private Boolean rejetter=Boolean.FALSE;
+
+    @Column(name = "DATE_CREATION")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date dateCreation;
+    @Column(name = "DATE_INTERVENTION")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date date_Intervention;
+    @Column(name = "DATE_DECLARATION")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date date_Declaration;
+    @Column(name = "DATE_SURVENU")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date date_Survenu;
+     @Column(name = "DATE_REJETTER")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date date_rejet;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "SORT")
+    private SortSinistre sort;
+    String Observation;
+    private String saisir_par;
+    private String modifier_par;
+    private String valider_par;
+    private String annuler_par;
+    private Boolean prise_encharger=Boolean.FALSE;
+    private Boolean remboursement_maladie=Boolean.FALSE;
+
+    public OrclassSinistre() {
+        sort=SortSinistre.ouvert;
+    }
+
+    public OrclassEntreprises getIdEntreprise() {
+        return idEntreprise;
+    }
+
+    public void setIdEntreprise(OrclassEntreprises idEntreprise) {
+        this.idEntreprise = idEntreprise;
+    }
+
+    public OrclassIntermediaires getIdIntermediaire() {
+        return idIntermediaire;
+    }
+
+    public void setIdIntermediaire(OrclassIntermediaires idIntermediaire) {
+        this.idIntermediaire = idIntermediaire;
+    }
+
+    public Boolean getRejetter() {
+        return rejetter;
+    }
+
+    public void setRejetter(Boolean rejetter) {
+        this.rejetter = rejetter;
+    }
+
+    public Date getDate_rejet() {
+        return date_rejet;
+    }
+
+    public void setDate_rejet(Date date_rejet) {
+        this.date_rejet = date_rejet;
+    }
+    
+    
+
+    public OrclassPolice getIdPolice() {
+        return idPolice;
+    }
+
+    public void setIdPolice(OrclassPolice idPolice) {
+        this.idPolice = idPolice;
+    }
+
+    public OrclassRegistreSinistre getIdRegistreSinistre() {
+        return idRegistreSinistre;
+    }
+
+    public void setIdRegistreSinistre(OrclassRegistreSinistre idRegistreSinistre) {
+        this.idRegistreSinistre = idRegistreSinistre;
+    }
+
+    public OrclassRisque getIdRisque() {
+        return idRisque;
+    }
+
+    public void setIdRisque(OrclassRisque idRisque) {
+        this.idRisque = idRisque;
+    }
+
+    public OrclassGarantie getIdGarantie() {
+        return idGarantie;
+    }
+
+    public void setIdGarantie(OrclassGarantie idGarantie) {
+        this.idGarantie = idGarantie;
+    }
+
+    public OrclassRubrique getIdRubrique() {
+        return idRubrique;
+    }
+
+    public void setIdRubrique(OrclassRubrique idRubrique) {
+        this.idRubrique = idRubrique;
+    }
+
+    public OrclassUtilisateurs getIdUtilisateurs() {
+        return idUtilisateurs;
+    }
+
+    public void setIdUtilisateurs(OrclassUtilisateurs idUtilisateurs) {
+        this.idUtilisateurs = idUtilisateurs;
+    }
+
+    public OrclasseFacture getIdFacture() {
+        return idFacture;
+    }
+
+    public void setIdFacture(OrclasseFacture idFacture) {
+        this.idFacture = idFacture;
+    }
+
+   
+    public OrclassRisqueFamille getIdRisqueFamille() {
+        return idRisqueFamille;
+    }
+
+    public void setIdRisqueFamille(OrclassRisqueFamille idRisqueFamille) {
+        this.idRisqueFamille = idRisqueFamille;
+    }
+
+    public OrclassPrestataire getIdPrestataire() {
+        return idPrestataire;
+    }
+
+    public void setIdPrestataire(OrclassPrestataire idPrestataire) {
+        this.idPrestataire = idPrestataire;
+    }
+
+    public OrclassNatureMaladie getIdNatureMaladie() {
+        return idNatureMaladie;
+    }
+
+    public void setIdNatureMaladie(OrclassNatureMaladie idNatureMaladie) {
+        this.idNatureMaladie = idNatureMaladie;
+    }
+
+    public String getNumero_sinistre() {
+        return numero_sinistre;
+    }
+
+    public void setNumero_sinistre(String numero_sinistre) {
+        this.numero_sinistre = numero_sinistre;
+    }
+
+    public Date getDateCreation() {
+        return dateCreation;
+    }
+
+    public void setDateCreation(Date dateCreation) {
+        this.dateCreation = dateCreation;
+    }
+
+    public Date getDate_Intervention() {
+        return date_Intervention;
+    }
+
+    public void setDate_Intervention(Date date_Intervention) {
+        this.date_Intervention = date_Intervention;
+    }
+
+    public Date getDate_Declaration() {
+        return date_Declaration;
+    }
+
+    public void setDate_Declaration(Date date_Declaration) {
+        this.date_Declaration = date_Declaration;
+    }
+
+    public Date getDate_Survenu() {
+        return date_Survenu;
+    }
+
+    public void setDate_Survenu(Date date_Survenu) {
+        this.date_Survenu = date_Survenu;
+    }
+
+    public SortSinistre getSort() {
+        return sort;
+    }
+
+    public void setSort(SortSinistre sort) {
+        this.sort = sort;
+    }
+
+    public String getObservation() {
+        return Observation;
+    }
+
+    public void setObservation(String Observation) {
+        this.Observation = Observation;
+    }
+
+    public String getSaisir_par() {
+        return saisir_par;
+    }
+
+    public void setSaisir_par(String saisir_par) {
+        this.saisir_par = saisir_par;
+    }
+
+    public String getModifier_par() {
+        return modifier_par;
+    }
+
+    public void setModifier_par(String modifier_par) {
+        this.modifier_par = modifier_par;
+    }
+
+    public String getValider_par() {
+        return valider_par;
+    }
+
+    public void setValider_par(String valider_par) {
+        this.valider_par = valider_par;
+    }
+
+    public String getAnnuler_par() {
+        return annuler_par;
+    }
+
+    public void setAnnuler_par(String annuler_par) {
+        this.annuler_par = annuler_par;
+    }
+
+    public OrclassBordereau getIdBordereau() {
+        return idBordereau;
+    }
+
+    public void setIdBordereau(OrclassBordereau idBordereau) {
+        this.idBordereau = idBordereau;
+    }
+
+    public Boolean getPrise_encharger() {
+        return prise_encharger;
+    }
+
+    public void setPrise_encharger(Boolean prise_encharger) {
+        this.prise_encharger = prise_encharger;
+    }
+
+    public Boolean getRemboursement_maladie() {
+        return remboursement_maladie;
+    }
+
+    public void setRemboursement_maladie(Boolean remboursement_maladie) {
+        this.remboursement_maladie = remboursement_maladie;
+    }
+
+    public String getRef_sinistre() {
+        return ref_sinistre;
+    }
+
+    public void setRef_sinistre(String ref_sinistre) {
+        this.ref_sinistre = ref_sinistre;
+    }
+    
+    
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (id != null ? id.hashCode() : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        // TODO: Warning - this method won't work in the case the id fields are not set
+        if (!(object instanceof OrclassSinistre)) {
+            return false;
+        }
+        OrclassSinistre other = (OrclassSinistre) object;
+        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "modele.OrclassSinistre[ id=" + id + " ]";
+    }
+
+}

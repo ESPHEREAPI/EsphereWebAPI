@@ -1,0 +1,55 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/J2EE/EJB30/StatelessEjbClass.java to edit this template
+ */
+package dao;
+
+import java.util.List;
+import javax.ejb.Stateless;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import modele.OrclassEntreprises;
+import modele.OrclassEvenementSinistreMaladie;
+import modele.OrclassSinistre;
+import modele.OrclassSinistreMaladie;
+
+/**
+ *
+ * @author JIATOU FRANCK
+ */
+@Stateless
+public class OrclassEvenementSinistreMaladieDao extends AbstractJpaDAO<OrclassEvenementSinistreMaladie>{
+
+    // Add business logic below. (Right-click in editor and choose
+    // "Insert Code > Add Business Method")
+      @PersistenceContext(unitName = AbstractJpaDAO.PersistanceUnit)
+    private EntityManager em;
+
+    @Override
+    protected Class<OrclassEvenementSinistreMaladie> getEntityClass() {
+      return OrclassEvenementSinistreMaladie.class;
+    }
+
+    @Override
+    protected EntityManager getEntityManager() {
+     return em;
+    }
+        public List<OrclassEvenementSinistreMaladie> listEnementBySinistreMaladie(OrclassEntreprises e,OrclassSinistreMaladie sinMad){
+        Query q;
+        q=em.createQuery("SELECT se FROM OrclassEvenementSinistreMaladie se WHERE se.idEntreprise= :e and se.idSinistreMaladie= :sinmad")
+                .setParameter("e", e)
+                .setParameter("sinmad", sinMad)
+                ;
+        return q.getResultList();
+    }
+         public List<OrclassEvenementSinistreMaladie> listEnementBySinistreMaladie(OrclassEntreprises e,OrclassSinistre sinMad){
+        Query q;
+        q=em.createQuery("SELECT se FROM OrclassEvenementSinistreMaladie se WHERE se.idEntreprise= :e and se.idSinistreMaladie.idSinistre= :sinmad")
+                .setParameter("e", e)
+                .setParameter("sinmad", sinMad)
+                ;
+        return q.getResultList();
+    }
+}
+

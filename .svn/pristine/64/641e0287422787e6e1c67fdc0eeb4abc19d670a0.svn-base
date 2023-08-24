@@ -1,0 +1,70 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package dao;
+
+import java.util.List;
+import javax.ejb.Stateless;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import modele.OrclassEntreprises;
+import modele.OrclassGarantie;
+//import modele.OrclassGroupeGarantiePolice;
+import modele.OrclassGroupePolice;
+import modele.OrclassPolice;
+import modele.OrclasseRefGroupe;
+
+/**
+ *
+ * @author JIATOU FRANCK
+ */
+@Stateless
+public class OrclassGroupePoliceDao extends AbstractJpaDAO<OrclassGroupePolice>{
+     @PersistenceContext(unitName = "ESpherePU")
+    private EntityManager em;
+
+    @Override
+    protected Class<OrclassGroupePolice> getEntityClass() {
+       return OrclassGroupePolice.class;
+    }
+
+    @Override
+    protected EntityManager getEntityManager() {
+     return em;
+    }
+
+    // Add business logic below. (Right-click in editor and choose
+    // "Insert Code > Add Business Method")
+    
+     public List<OrclassGroupePolice> ListeGroupByCompagnieForPolice(OrclassEntreprises e, OrclassPolice police){
+        Query q;
+        q=em.createQuery("SELECT ggp FROM OrclassGroupePolice ggp WHERE ggp.idEntreprise= :e and ggp.idPolice= :p")
+                .setParameter("e", e)
+//                .setParameter("g", garantie)
+//                .setParameter("gr", group)
+                .setParameter("p", police)
+                ;
+        
+        return  q.getResultList();
+        
+    }
+     
+      
+     public OrclassGroupePolice finKey(OrclassEntreprises e, OrclassPolice police,OrclasseRefGroupe group){
+        Query q;
+        q=em.createQuery("SELECT ggp FROM OrclassGroupeGarantiePolice ggp WHERE ggp.idEntreprise= :e and ggp.idGroupePolice.idPolice= :p  and ggp.idGroupePolice.idRefGroupe= :gr")
+                .setParameter("e", e)
+//                .setParameter("g", garantie)
+                .setParameter("gr", group)
+                .setParameter("p", police)
+                ;
+        if (q.getResultList().isEmpty()) {
+            return null;
+        }
+        return (OrclassGroupePolice) q.getResultList().toArray()[0];
+        
+    }
+}

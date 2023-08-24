@@ -1,0 +1,177 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package dao;
+
+import java.util.List;
+import javax.ejb.Stateless;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import modele.OrclassAvenant;
+import modele.OrclassDetailPolicePlafond;
+import modele.OrclassEntreprises;
+import modele.OrclassPolice;
+import modele.OrclassPrestation;
+//import modele.OrclassPolicesss;
+import modele.OrclassRubrique;
+import modele.OrclassRubriqueCategorie;
+import modele.OrclasseRefGroupe;
+
+/**
+ *
+ * @author hp
+ */
+@Stateless
+public class OrclassDetailPolicePlafondDao extends AbstractJpaDAO<OrclassDetailPolicePlafond> {
+
+    private static final long serialVersionUID = 1L;
+    @PersistenceContext(unitName = AbstractJpaDAO.PersistanceUnit)
+    private EntityManager em;
+
+    // Add business logic below. (Right-click in editor and choose
+    // "Insert Code > Add Business Method")
+    @Override
+    protected Class<OrclassDetailPolicePlafond> getEntityClass() {
+        return OrclassDetailPolicePlafond.class;
+    }
+
+    @Override
+    protected EntityManager getEntityManager() {
+        return em;
+    }
+
+    public List<OrclassRubrique> listeRubrique(OrclassPolice police) {
+        Query q;
+        q = em.createQuery("SELECT DISTINCT d.idRubrique FROM OrclassDetailPolicePlafond d WHERE  d.idPolicePlafond.idPolice= :police")
+                .setParameter("police", police);
+        return q.getResultList();
+    }
+
+    public List<OrclassDetailPolicePlafond> listeDetailPlafond(OrclassPolice police) {
+        Query q;
+        q = em.createQuery("SELECT d FROM OrclassDetailPolicePlafond d WHERE  d.idPolicePlafond.idPolice= :police and d.idAvenant is null ")
+                .setParameter("police", police);
+        return q.getResultList();
+    }
+
+    public List<OrclassDetailPolicePlafond> listeDetailPlafond(OrclassEntreprises e, OrclassPolice police, OrclasseRefGroupe g) {
+        Query q;
+        q = em.createQuery("SELECT d FROM OrclassDetailPolicePlafond d WHERE  d.idPolicePlafond.idPolice= :police and d.idGroup= :g and d.idEntreprise= :e and  d.idPolicePlafond.idAvenant is null ")
+                .setParameter("police", police)
+                .setParameter("e", e)
+                .setParameter("g", g);
+        return q.getResultList();
+    }
+
+    public List<OrclassDetailPolicePlafond> allDetailPlafondPolice(OrclassEntreprises e, OrclassPolice police) {
+        Query q;
+        q = em.createQuery("SELECT d FROM OrclassDetailPolicePlafond d WHERE  d.idPolicePlafond.idPolice= :police  and d.idEntreprise= :e  ")
+                .setParameter("police", police)
+                .setParameter("e", e);
+        return q.getResultList();
+    }
+
+    public List<OrclassDetailPolicePlafond> allDetailPlafondPolice(OrclassEntreprises e, OrclassPolice police, OrclasseRefGroupe g) {
+        Query q;
+        q = em.createQuery("SELECT d FROM OrclassDetailPolicePlafond d WHERE  d.idPolicePlafond.idPolice= :police  and d.idEntreprise= :e and d.idGroup= :g ")
+                .setParameter("police", police)
+                .setParameter("e", e)
+                .setParameter("g", g);
+        return q.getResultList();
+    }
+
+    public List<OrclassDetailPolicePlafond> listeDetailPlafondByRubrique(OrclassPolice police, OrclassRubrique rb) {
+        Query q;
+        q = em.createQuery("SELECT d FROM OrclassDetailPolicePlafond d WHERE  d.idPolicePlafond.idPolice= :police and d.idRubrique.id= :id and d.idAvenant is null")
+                .setParameter("police", police)
+                .setParameter("id", rb.getId());
+        return q.getResultList();
+    }
+
+    public List<OrclassPrestation> listePrestationHavaDetailPolice(OrclassEntreprises e, OrclassPolice police) {
+        Query q;
+        q = em.createQuery("SELECT DISTINCT d.idPrestation FROM OrclassDetailPolicePlafond d WHERE  d.idPolicePlafond.idPolice= :police and d.idEntreprise= :e")
+                .setParameter("police", police)
+                .setParameter("e", e);
+        return q.getResultList();
+    }
+     public List<OrclassPrestation> listePrestationHavaDetailPolice(OrclassEntreprises e, OrclassPolice police,OrclasseRefGroupe g) {
+        Query q;
+        q = em.createQuery("SELECT DISTINCT d.idPrestation FROM OrclassDetailPolicePlafond d WHERE  d.idPolicePlafond.idPolice= :police and d.idEntreprise= :e and d.idGroup.id= :idg")
+                .setParameter("police", police)
+                 .setParameter("idg", g.getId())
+                .setParameter("e", e);
+        return q.getResultList();
+    }
+
+    public List<OrclassPrestation> listePrestationHavaDetailPolice(OrclassEntreprises e, OrclassPolice police, OrclassRubriqueCategorie rc) {
+        Query q;
+        q = em.createQuery("SELECT d.idPrestation FROM OrclassDetailPolicePlafond d WHERE  d.idPolicePlafond.idPolice= :police and d.idEntreprise= :e and d.idRubrique= :rc")
+                .setParameter("police", police)
+                .setParameter("rc", rc.getIdRubrique())
+                .setParameter("e", e);
+        return q.getResultList();
+    }
+
+    public List<OrclassDetailPolicePlafond> listeDetailPolicePlafondHaveAvenant(OrclassEntreprises e, OrclassPolice police, OrclassAvenant av) {
+        Query q;
+        q = em.createQuery("SELECT d FROM OrclassDetailPolicePlafond d WHERE  d.idPolicePlafond.idPolice= :police and d.idEntreprise= :e and d.idAvenant= :av")
+                .setParameter("police", police)
+                .setParameter("av", av)
+                .setParameter("e", e);
+        return q.getResultList();
+    }
+
+    public List<OrclassDetailPolicePlafond> listeDetailPolicePlafondHaveAvenant(OrclassEntreprises e, OrclassPolice police, OrclassAvenant av, OrclassRubrique r) {
+        Query q;
+        q = em.createQuery("SELECT d FROM OrclassDetailPolicePlafond d WHERE  d.idPolicePlafond.idPolice= :police and d.idEntreprise= :e and d.idRubrique= :r and d.idAvenant= :av")
+                .setParameter("police", police)
+                .setParameter("av", av)
+                .setParameter("r", r)
+                .setParameter("e", e);
+        return q.getResultList();
+    }
+
+    public OrclassDetailPolicePlafond detailPolicePlafondHaveAvenantForPrestation(OrclassEntreprises e, OrclassPolice police, OrclassPrestation p) {
+        Query q;
+        q = em.createQuery("SELECT d FROM OrclassDetailPolicePlafond d WHERE  d.idPolicePlafond.idPolice= :police and d.idEntreprise= :e  and d.idPrestation= :p and d.idAvenant is null")
+                .setParameter("police", police)
+                //                .setParameter("av", av)
+                .setParameter("p", p)
+                .setParameter("e", e);
+        if (q.getResultList().isEmpty()) {
+            return null;
+        }
+        return (OrclassDetailPolicePlafond) q.getResultList().toArray()[0];
+    }
+
+    public OrclassDetailPolicePlafond detailPolicePlafondHaveAvenantForPrestation(OrclassEntreprises e, OrclassPolice police, OrclassPrestation p, OrclassRubrique r) {
+        Query q;
+        q = em.createQuery("SELECT d FROM OrclassDetailPolicePlafond d WHERE  d.idPolicePlafond.idPolice= :police and d.idEntreprise= :e  and d.idPrestation= :p and d.idAvenant is null")
+                .setParameter("police", police)
+                //                .setParameter("av", av)
+                .setParameter("p", p)
+                .setParameter("e", e);
+        if (q.getResultList().isEmpty()) {
+            return null;
+        }
+        return (OrclassDetailPolicePlafond) q.getResultList().toArray()[0];
+    }
+
+    public OrclassDetailPolicePlafond detailPolicePlafondHaveAvenantForPrestation(OrclassEntreprises e, OrclassPolice police, OrclassPrestation p, OrclasseRefGroupe group) {
+        Query q;
+        q = em.createQuery("SELECT d FROM OrclassDetailPolicePlafond d WHERE  d.idPolicePlafond.idPolice= :police and d.idEntreprise= :e  and d.idPrestation= :p and d.idGroup= :g and d.idAvenant is null")
+                .setParameter("police", police)
+                .setParameter("g", group)
+                .setParameter("p", p)
+                .setParameter("e", e);
+        if (q.getResultList().isEmpty()) {
+            return null;
+        }
+        return (OrclassDetailPolicePlafond) q.getResultList().toArray()[0];
+    }
+
+}

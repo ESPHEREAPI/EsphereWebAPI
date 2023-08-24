@@ -1,0 +1,490 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package controllers.adp;
+
+import dao.OrclassAssureDao;
+import dao.OrclassAvenantDao;
+import dao.OrclassDetailPolicePlafondDao;
+import dao.OrclassEvenementDao;
+import dao.OrclassGroupeGarantiePoliceDao;
+import dao.OrclassGroupePoliceDao;
+import dao.OrclassIntervenantDao;
+import dao.OrclassMedicamentSinistreMaladieDao;
+import dao.OrclassNatureMaladieDao;
+import dao.OrclassPoliceDao;
+import dao.OrclassPoliceGarantieDao;
+import dao.OrclassPrestataireDao;
+import dao.OrclassRisqueDao;
+import dao.OrclassRisqueFamilleDao;
+import dao.OrclassSinistreDao;
+import dao.OrclassSinistreMaladieDao;
+import enums.ModeApplicationSante;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
+import javax.faces.application.FacesMessage;
+import javax.faces.context.FacesContext;
+import javax.inject.Named;
+import javax.faces.view.ViewScoped;
+import javax.validation.ConstraintViolationException;
+import modele.OrclassAssure;
+import modele.OrclassAvenant;
+import modele.OrclassCategories;
+import modele.OrclassConvention;
+import modele.OrclassDetailPolicePlafond;
+import modele.OrclassEntreprises;
+import modele.OrclassGarantie;
+import modele.OrclassGroupePolice;
+import modele.OrclassNatureMaladie;
+import modele.OrclassPolice;
+import modele.OrclassPoliceGarantie;
+import modele.OrclassPrestataire;
+import modele.OrclassRisque;
+import modele.OrclassRisqueFamille;
+import modele.OrclassRubrique;
+import modele.OrclassSinistre;
+import modele.OrclassSinistreMaladie;
+import modele.OrclassUtilisateurs;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import sante.ISinistre;
+import utils.GlobalFonctions;
+import utils.LocaleHelper;
+import utils.RecupBundle;
+
+/**
+ *
+ * @author JIATOU FRANCK
+ */
+@Named(value = "sinistreMaladieController")
+@ViewScoped
+public class SinistreMaladieController implements Serializable {
+
+    private static final Logger logger = LoggerFactory.getLogger(SinistreMaladieController.class);
+
+    /**
+     * Creates a new instance of SinistreMaladieController
+     */
+    @EJB
+    OrclassSinistreDao sinistreDao;
+    @EJB
+    OrclassPoliceDao policeDao;
+    @EJB
+    OrclassSinistreMaladieDao sinistreMaladieDao;
+    @EJB
+    OrclassEvenementDao evenementDao;
+    @EJB
+    OrclassIntervenantDao intervenantDao;
+    @EJB
+    OrclassMedicamentSinistreMaladieDao medicamentSinistreMaladieDao;
+    @EJB
+    OrclassNatureMaladieDao natureMaladieDao;
+    @EJB
+    OrclassRisqueDao risqueDao;
+    @EJB
+    OrclassRisqueFamilleDao risqueFamilleDao;
+    @EJB
+    OrclassGroupeGarantiePoliceDao groupeGarantiePoliceDao;
+    @EJB
+    OrclassPoliceGarantieDao policeGarantieDao;
+    @EJB
+    OrclassDetailPolicePlafondDao detailPolicePlafondDao;
+    OrclassDetailPolicePlafond detailPolicePlafond;
+    @EJB
+    OrclassAvenantDao avenantDao;
+    OrclassAvenant avenant;
+    @EJB
+    OrclassAssureDao assureDao;
+    @EJB
+    OrclassGroupePoliceDao groupePoliceDao;
+    @EJB
+    OrclassPrestataireDao prestataireDao;
+       @EJB
+    ISinistre sinistreService;
+
+    private List<OrclassSinistre> listeSinistre = new ArrayList<>();
+    private List<OrclassSinistreMaladie> listeSinistreMaladie = new ArrayList<>();
+    private List<OrclassPolice> listePolice = new ArrayList<>();
+    private List<OrclassRisque> listeRisque = new ArrayList<>();
+    private List<OrclassRisqueFamille> listeRisqueFamille = new ArrayList<>();
+    private List<OrclassNatureMaladie> listeNatureMaladie = new ArrayList<>();
+    private List<OrclassPrestataire> listePrestataire = new ArrayList<>();
+    private List<OrclassRubrique> listeRubrique = new ArrayList<>();
+    private List<OrclassGarantie> listeGarantie = new ArrayList<>();
+    private List<OrclassGroupePolice> listeGroupePolice = new ArrayList<>();
+    private List<OrclassDetailPolicePlafond> listesDetailPolicePlafond = new ArrayList<>();
+    private OrclassCategories categories;
+    private OrclassGroupePolice groupePolice;
+    private Date effet, echeance;
+    private OrclassRubrique rubrique;
+    private OrclassGarantie garantie;
+    private OrclassUtilisateurs user;
+    private OrclassEntreprises entreprise;
+    OrclassPolice police;
+    OrclassAssure assure;
+    OrclassConvention convention;
+    OrclassRisque risque, risqueSelecte;
+    OrclassPoliceGarantie policeGarantie;
+    OrclassPrestataire prestataire;
+    OrclassSinistre sinistre;
+    OrclassSinistreMaladie sinistreMaladie;
+
+    public SinistreMaladieController() {
+        categories = new OrclassCategories();
+        rubrique = new OrclassRubrique();
+        groupePolice = new OrclassGroupePolice();
+        garantie = new OrclassGarantie();
+        risqueSelecte = new OrclassRisque();
+
+    }
+
+    @PostConstruct
+    void initialiseSession() {
+        FacesContext.getCurrentInstance().getExternalContext().getSession(true);
+        entreprise = (OrclassEntreprises) FacesContext.getCurrentInstance().getExternalContext().getSessionMap().get(GlobalFonctions.ENTREPRISE_ACTIF);
+        if (entreprise == null) {
+            entreprise = (OrclassEntreprises) FacesContext.getCurrentInstance().getExternalContext().getApplicationMap().get(GlobalFonctions.ENTREPRISE_ACTIF);
+
+        }
+
+        user = (OrclassUtilisateurs) FacesContext.getCurrentInstance().getExternalContext().getSessionMap().get(GlobalFonctions.SESSION_USER);
+        listeSinistre = sinistreDao.listeSinistreByCompagnie(entreprise);
+        if (user != null && Objects.equals(user.getAllAccessForIntermediaire(), Boolean.TRUE)) {
+            listePolice = policeDao.listeContraByCompagny(entreprise);
+        } else {
+            listePolice = policeDao.listeContraValideByAgence(user.getIdIntermediaire(), entreprise);
+        }
+        // charge les prestataire 
+        listePrestataire = prestataireDao.listePrstataireByCompagnie(entreprise);
+        listeNatureMaladie = natureMaladieDao.listeNatureMaladieByCompagnie(entreprise);
+
+    }
+
+//    choisir sur la police 
+    public void selectePolice() {
+        if (this.getPolice() != null && this.getPolice().getId() != null) {
+            //verifiont si un avenant existe pour cette police
+
+            this.avenant = avenantDao.lastAvenantByPolice(police, entreprise);
+            if (this.avenant == null) {
+                this.setEffet(this.police.getDate_effet());
+                this.setEcheance(this.police.getDate_echeance());
+                this.setAssure(police.getIdAssure());
+
+            } else if (this.avenant != null && this.avenant.getId() != null) {
+                this.setEffet(this.avenant.getDate_effet());
+                this.setEcheance(this.avenant.getDate_echeance());
+                if (this.police.getIdCategories().getModeApplicationSante().equals(ModeApplicationSante.groupe)) {
+                    if (!"".equals(avenant.getRaison_social()) && avenant.getRaison_social() != null) {
+                        assure = assureDao.getLastRowForAgence(police.getIdIntermediaire(), entreprise);
+                        assure.setRaison_social(avenant.getRaison_social());
+
+                    } else {
+                        this.setAssure(police.getIdAssure());
+                    }
+                } else {
+                    if (!"".equals(avenant.getNom()) && avenant.getNom() != null) {
+                        assure = assureDao.getLastRowForAgence(police.getIdIntermediaire(), entreprise);
+                        assure.setNom(avenant.getNom());
+                        if (!"".equals(avenant.getPrenom()) && avenant.getPrenom() != null) {
+                            assure.setNom(avenant.getNom() + " " + avenant.getPrenom());
+                        }
+
+                    } else {
+                        this.setAssure(police.getIdAssure());
+                    }
+                }
+
+            }
+
+            this.setCategories(police.getIdCategories());
+            if (police.getIdConvention() == null) {
+                convention = new OrclassConvention();
+            } else {
+                convention = police.getIdConvention();
+            }
+
+            // recuperation des group de la police 
+            listeGroupePolice = groupePoliceDao.ListeGroupByCompagnieForPolice(entreprise, police);
+            // des recuperations des risque de la police
+            listeRisque = risqueDao.listeRisqueByPolice(entreprise, police);
+
+            if (avenant != null && avenant.getId() != null) {
+                for (OrclassRisque rr : risqueDao.listeRisqueByPoliceHaveAvenant(entreprise, police, avenant)) {
+                    if (Objects.equals(rr.getRetire_de_la_police(), Boolean.TRUE)) {
+                        risque = risqueDao.find(rr.getCodeid_retirer());
+                        if (risque != null && risque.getId() != null) {
+                            listeRisque.remove(risque);
+                        }
+
+                    } else if (Objects.equals(rr.getModifier(), Boolean.TRUE)) {
+                        risque = risqueDao.risqueByLibelle(entreprise, police, rr.getLibelle());
+                        if (risque != null && risque.getId() != null) {
+                            listeRisque.remove(risque);
+                            listeRisque.add(rr);
+                        }
+                    } else if (Objects.equals(rr.getAjouter(), Boolean.TRUE)) {
+                        listeRisque.add(rr);
+                    }
+                }
+            }
+
+            //recuperations des garanties pour la police
+            listeGarantie = policeGarantieDao.listeGarantiesHavePoliceGarantie(entreprise, police);
+
+            if (avenant != null && avenant.getId() != null) {
+                for (OrclassPoliceGarantie pgg : policeGarantieDao.listeGarantiesForPoliceHaveAvenant(entreprise, police, avenant)) {
+                    if (Objects.equals(pgg.getRetire_de_la_police(), Boolean.TRUE)) {
+                        policeGarantie = policeGarantieDao.find(pgg.getCodeid_retirer());
+                        if (policeGarantie != null && policeGarantie.getId() != null) {
+                            listeGarantie.remove(policeGarantie.getIdGarantie());
+                        }
+                    } else if (Objects.equals(pgg.getModifier(), Boolean.TRUE)) {
+                        policeGarantie = policeGarantieDao.OrclassPoliceGarantieByLibelle(entreprise, police, pgg.getIdGarantie());
+                        if (policeGarantie != null && policeGarantie.getId() != null) {
+                            listeGarantie.remove(policeGarantie.getIdGarantie());
+                        }
+                    } else if (Objects.equals(pgg.getAjouter(), Boolean.TRUE)) {
+                        listeGarantie.add(policeGarantie.getIdGarantie());
+                    }
+                }
+            }
+            // recuperation rubrique pour la police
+            listeRubrique = detailPolicePlafondDao.listeRubrique(police);
+
+        }
+
+    }
+
+    //charger les membre de famille pour un adherent choisir
+    public void chargerRisqueFamilleByRisque() {
+        OrclassRisqueFamille rf = null;
+        if (risqueSelecte != null && risqueSelecte.getId() != null && police != null && police.getId() != null) {
+            listeRisqueFamille = risqueFamilleDao.listeFamilleRisqueByRisqueHavePoliceForGroup(entreprise, police, risqueSelecte);
+            if (avenant != null && avenant.getId() != null) {
+                for (OrclassRisqueFamille rff : risqueFamilleDao.listeRisqueFamilleFoPoliceByAvenant(entreprise, police, avenant, risqueSelecte)) {
+                    if (Objects.equals(rff.getRetire_de_la_police(), Boolean.TRUE)) {
+                        rf = risqueFamilleDao.find(rff.getCodeid_retirer());
+                        if (rf != null && rf.getId() != null) {
+                            listeRisqueFamille.remove(rf);
+
+                        }
+                    } else if (Objects.equals(rff.getModifier(), Boolean.TRUE)) {
+                        rf = risqueFamilleDao.risqueFamilleFoPoliceBylibelle(entreprise, police, rff.getNom_membre(), risqueSelecte);
+                        if (rf != null && rf.getId() != null) {
+                            listeRisqueFamille.remove(rf);
+                            listeRisqueFamille.add(rff);
+                        }
+                    } else if (Objects.equals(rff.getAjouter(), Boolean.TRUE)) {
+                        listeRisqueFamille.add(rff);
+                    }
+                }
+            }
+
+        }
+    }
+
+    // charger les prestation  pour cette police en des rubrique selectionner
+    public void chargePrestationByRubrique() {
+        OrclassDetailPolicePlafond dpp = null;
+        if (rubrique != null && rubrique.getId() != null && police != null && police.getId() != null) {
+            listesDetailPolicePlafond = detailPolicePlafondDao.listeDetailPlafondByRubrique(police, rubrique);
+            if (avenant != null && avenant.getId() != null) {
+                for (OrclassDetailPolicePlafond dp : detailPolicePlafondDao.listeDetailPolicePlafondHaveAvenant(entreprise, police, avenant, rubrique)) {
+                    if (Objects.equals(dp.getRetire_de_la_police(), Boolean.TRUE)) {
+                        dpp = detailPolicePlafondDao.find(dp.getCodeid_retirer());
+                        if (dpp != null && dpp.getId() != null) {
+                            listesDetailPolicePlafond.remove(dpp);
+                        }
+                    } else if (Objects.equals(dp.getAjouter(), Boolean.TRUE)) {
+                        listesDetailPolicePlafond.add(dp);
+                    } else if (Objects.equals(dp.getModifier(), Boolean.TRUE)) {
+                        dpp = detailPolicePlafondDao.detailPolicePlafondHaveAvenantForPrestation(entreprise, police, dp.getIdPrestation(), rubrique);
+                        if (dpp != null && dpp.getId() != null) {
+                            listesDetailPolicePlafond.remove(dpp);
+                            listesDetailPolicePlafond.add(dp);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public void valideSinistre() {
+        FacesContext ctx = FacesContext.getCurrentInstance();
+        Locale myLoc = ctx.getViewRoot().getLocale();
+        String entete[] = {LocaleHelper.getLocaleString(RecupBundle.FichierBundle, "prise.charge", null, myLoc)};
+
+        try {
+            if (listeSinistreMaladie.isEmpty()) {
+                ctx.addMessage("msg", new FacesMessage(FacesMessage.SEVERITY_WARN, "LIST IS EMPTY", "PLEASE TRY AGAINST"));
+                return;
+            }
+            
+            // fonction de validation
+            
+//              String[] detail = {entete[0], sinis.getCode() + "," + refPrestataire.getLibelle()};
+
+        } catch (ConstraintViolationException ejb) {
+            GlobalFonctions.displayMessages("msg", ctx, FacesMessage.SEVERITY_WARN, ejb.getCause().getClass().getSimpleName(), exception.Error.DUPLICATE_ERROR_INSERT + "", null);
+            throw ejb;
+        } catch (Exception th) {
+            GlobalFonctions.displayMessages(null, ctx, FacesMessage.SEVERITY_FATAL, "prise.charge", exception.Error.FATAL_ERROR + "", new Object[]{"prise.charge"});
+            logger.error("Erreur Survenu", th);
+        }
+
+    }
+
+    public OrclassCategories getCategories() {
+        return categories;
+    }
+
+    public void setCategories(OrclassCategories categories) {
+        this.categories = categories;
+    }
+
+    public List<OrclassSinistre> getListeSinistre() {
+        return listeSinistre;
+    }
+
+    public void setListeSinistre(List<OrclassSinistre> listeSinistre) {
+        this.listeSinistre = listeSinistre;
+    }
+
+    public List<OrclassSinistreMaladie> getListeSinistreMaladie() {
+        return listeSinistreMaladie;
+    }
+
+    public void setListeSinistreMaladie(List<OrclassSinistreMaladie> listeSinistreMaladie) {
+        this.listeSinistreMaladie = listeSinistreMaladie;
+    }
+
+    public List<OrclassPolice> getListePolice() {
+        return listePolice;
+    }
+
+    public void setListePolice(List<OrclassPolice> listePolice) {
+        this.listePolice = listePolice;
+    }
+
+    public List<OrclassRisque> getListeRisque() {
+        return listeRisque;
+    }
+
+    public void setListeRisque(List<OrclassRisque> listeRisque) {
+        this.listeRisque = listeRisque;
+    }
+
+    public List<OrclassRisqueFamille> getListeRisqueFamille() {
+        return listeRisqueFamille;
+    }
+
+    public void setListeRisqueFamille(List<OrclassRisqueFamille> listeRisqueFamille) {
+        this.listeRisqueFamille = listeRisqueFamille;
+    }
+
+    public List<OrclassNatureMaladie> getListeNatureMaladie() {
+        return listeNatureMaladie;
+    }
+
+    public void setListeNatureMaladie(List<OrclassNatureMaladie> listeNatureMaladie) {
+        this.listeNatureMaladie = listeNatureMaladie;
+    }
+
+    public List<OrclassRubrique> getListeRubrique() {
+        return listeRubrique;
+    }
+
+    public void setListeRubrique(List<OrclassRubrique> listeRubrique) {
+        this.listeRubrique = listeRubrique;
+    }
+
+    public List<OrclassGarantie> getListeGarantie() {
+        return listeGarantie;
+    }
+
+    public void setListeGarantie(List<OrclassGarantie> listeGarantie) {
+        this.listeGarantie = listeGarantie;
+    }
+
+    public List<OrclassGroupePolice> getListeGroupePolice() {
+        return listeGroupePolice;
+    }
+
+    public void setListeGroupePolice(List<OrclassGroupePolice> listeGroupePolice) {
+        this.listeGroupePolice = listeGroupePolice;
+    }
+
+    public OrclassGroupePolice getGroupePolice() {
+        return groupePolice;
+    }
+
+    public void setGroupePolice(OrclassGroupePolice groupePolice) {
+        this.groupePolice = groupePolice;
+    }
+
+    public Date getEffet() {
+        return effet;
+    }
+
+    public void setEffet(Date effet) {
+        this.effet = effet;
+    }
+
+    public Date getEcheance() {
+        return echeance;
+    }
+
+    public void setEcheance(Date echeance) {
+        this.echeance = echeance;
+    }
+
+    public OrclassRubrique getRubrique() {
+        return rubrique;
+    }
+
+    public void setRubrique(OrclassRubrique rubrique) {
+        this.rubrique = rubrique;
+    }
+
+    public OrclassGarantie getGarantie() {
+        return garantie;
+    }
+
+    public void setGarantie(OrclassGarantie garantie) {
+        this.garantie = garantie;
+    }
+
+    public OrclassPolice getPolice() {
+        return police;
+    }
+
+    public void setPolice(OrclassPolice police) {
+        this.police = police;
+    }
+
+    public OrclassAvenant getAvenant() {
+        return avenant;
+    }
+
+    public void setAvenant(OrclassAvenant avenant) {
+        this.avenant = avenant;
+    }
+
+    public OrclassAssure getAssure() {
+        return assure;
+    }
+
+    public void setAssure(OrclassAssure assure) {
+        this.assure = assure;
+    }
+
+}

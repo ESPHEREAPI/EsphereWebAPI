@@ -1,0 +1,152 @@
+package dao;
+
+import java.util.ArrayList;
+import java.util.List;
+import javax.ejb.Stateless;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import modele.OrclassAvenant;
+import modele.OrclassCaracteristiques;
+import modele.OrclassEntreprises;
+import modele.OrclassPolice;
+import modele.OrclassPoliceCaracteristique;
+import modele.OrclasseRefGroupe;
+
+@Stateless
+public class OrclassPoliceCaracteristiqueDao extends AbstractJpaDAO<OrclassPoliceCaracteristique> {
+
+    private static final long serialVersionUID = 1L;
+
+    @PersistenceContext(unitName = "ESpherePU")
+    private EntityManager em;
+
+    protected Class<OrclassPoliceCaracteristique> getEntityClass() {
+        return OrclassPoliceCaracteristique.class;
+    }
+
+    protected EntityManager getEntityManager() {
+        return this.em;
+    }
+
+    public List<OrclassPoliceCaracteristique> listeCaracteristiqueByPoliceNotHaveAvenant(OrclassEntreprises e, OrclassPolice p) {
+        Query q;
+        q = em.createQuery("SELECT c FROM OrclassPoliceCaracteristique c WHERE c.idEntreprise= :e and c.idPolice= :p and c.idAvenant is null")
+                .setParameter("e", e)
+                .setParameter("p", p);
+        if (q.getResultList().isEmpty()) {
+             return new ArrayList<>();
+        }
+        return (List<OrclassPoliceCaracteristique>) q.getResultList();
+    }
+
+    public List<OrclassPoliceCaracteristique> listeCaracteristiqueByPoliceNotHaveAvenant(OrclassEntreprises e, OrclassPolice p, OrclasseRefGroupe group) {
+        Query q;
+        q = em.createQuery("SELECT c FROM OrclassPoliceCaracteristique c WHERE c.idEntreprise= :e and c.idPolice= :p and c.idGroup= :g and c.idAvenant is null")
+                .setParameter("e", e)
+                .setParameter("p", p)
+                .setParameter("g", group)
+                ;
+        if (q.getResultList().isEmpty()) {
+             return new ArrayList<>();
+        }
+        return (List<OrclassPoliceCaracteristique>) q.getResultList();
+    }
+
+    
+   
+    public List<OrclassCaracteristiques> listeCaracteristiqueHavePoliceCaracteristique(OrclassEntreprises e, OrclassPolice p) {
+        Query q;
+        q = em.createQuery("SELECT c.idCaracteristiques FROM OrclassPoliceCaracteristique c WHERE c.idEntreprise= :e and c.idPolice= :p and c.idAvenant is null")
+                .setParameter("e", e)
+                .setParameter("p", p);
+        if (q.getResultList().isEmpty()) {
+             return new ArrayList<>();
+        }
+        return (List<OrclassCaracteristiques>) q.getResultList();
+    }
+
+    public List<OrclassPoliceCaracteristique> listeCaracteristiqueForPoliceByAvenant(OrclassEntreprises e, OrclassPolice p, OrclassAvenant av) {
+        Query q;
+        q = em.createQuery("SELECT c FROM OrclassPoliceCaracteristique c WHERE c.idEntreprise= :e and c.idPolice= :p and c.idAvenant= :av")
+                .setParameter("e", e)
+                .setParameter("p", p)
+                .setParameter("av", av);
+        if (q.getResultList().isEmpty()) {
+            return new ArrayList<>();
+        }
+        return (List<OrclassPoliceCaracteristique>) q.getResultList();
+    }
+
+    public OrclassPoliceCaracteristique caracteristiqueForPoliceByLibelle(OrclassEntreprises e, OrclassPolice p, String libelle) {
+        Query q;
+        q = em.createQuery("SELECT c FROM OrclassPoliceCaracteristique c WHERE c.idEntreprise= :e and c.idPolice= :p and c.idCaracteristiques.libelle= :libelle and c.idAvenant is null")
+                .setParameter("e", e)
+                .setParameter("p", p)
+                .setParameter("libelle", libelle);
+        if (q.getResultList().isEmpty()) {
+            return null;
+        }
+        return (OrclassPoliceCaracteristique) q.getResultList().toArray()[0];
+    }
+    
+    
+    public OrclassPoliceCaracteristique findKey(OrclassEntreprises e, OrclassPolice p,OrclassCaracteristiques c,OrclasseRefGroupe group) {
+        Query q;
+        q = em.createQuery("SELECT c FROM OrclassPoliceCaracteristique c WHERE c.idEntreprise= :e and c.idPolice= :p and c.idCaracteristiques= :c and c.idGroup= :g and c.idAvenant is null")
+                .setParameter("e", e)
+                .setParameter("p", p)
+                .setParameter("g", group)
+                .setParameter("c", c);
+        if (q.getResultList().isEmpty()) {
+            return null;
+        }
+        return (OrclassPoliceCaracteristique) q.getResultList().toArray()[0];
+    }
+    public OrclassPoliceCaracteristique findKey(OrclassEntreprises e, OrclassPolice p,OrclassCaracteristiques c) {
+        Query q;
+        q = em.createQuery("SELECT c FROM OrclassPoliceCaracteristique c WHERE c.idEntreprise= :e and c.idPolice= :p and c.idCaracteristiques= :c  and c.idAvenant is null")
+                .setParameter("e", e)
+                .setParameter("p", p)
+////                .setParameter("g", group)
+                .setParameter("c", c);
+        if (q.getResultList().isEmpty()) {
+            return null;
+        }
+        return (OrclassPoliceCaracteristique) q.getResultList().toArray()[0];
+    }
+   public OrclassPoliceCaracteristique lastRowForPolice(OrclassEntreprises e, OrclassPolice p) {
+       Query q;
+       q=em.createQuery("SELECT pc FROM OrclassPoliceCaracteristique pc where pc.id=(SELECT MAX(pcaract.id) FROM OrclassPoliceCaracteristique pcaract where pcaract.idPolice= :p and pcaract.idEntreprise= :e and pcaract.idAvenant is not null)")
+               .setParameter("p", p)
+               .setParameter("e", e)
+               ;
+       if (q.getResultList().isEmpty()) {
+           return null;
+       }
+       return (OrclassPoliceCaracteristique) q.getResultList().toArray()[0];
+   }
+   
+    public List<OrclassPoliceCaracteristique> allPoliciCaracteristique(OrclassEntreprises e, OrclassPolice p) {
+        Query q;
+        q = em.createQuery("SELECT c FROM OrclassPoliceCaracteristique c WHERE c.idEntreprise= :e and c.idPolice= :p ")
+                .setParameter("e", e)
+                .setParameter("p", p);
+        if (q.getResultList().isEmpty()) {
+           return new ArrayList<>();
+        }
+        return (List<OrclassPoliceCaracteristique>) q.getResultList();
+    }
+     public List<OrclassPoliceCaracteristique> allPoliciCaracteristique(OrclassEntreprises e, OrclassPolice p,OrclasseRefGroupe g) {
+        Query q;
+        q = em.createQuery("SELECT c FROM OrclassPoliceCaracteristique c WHERE c.idEntreprise= :e and c.idPolice= :p  and c.idGroup= :g")
+                .setParameter("e", e)
+                .setParameter("p", p)
+                .setParameter("g", g)
+                ;
+        if (q.getResultList().isEmpty()) {
+            return new ArrayList<>();
+        }
+        return (List<OrclassPoliceCaracteristique>) q.getResultList();
+    }
+}

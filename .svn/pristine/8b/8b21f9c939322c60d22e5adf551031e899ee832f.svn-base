@@ -1,0 +1,38 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package sante;
+
+import exception.GlobalException;
+import java.math.BigDecimal;
+import java.util.List;
+import modele.OrclassAssure;
+import modele.OrclassDetailPolicePlafond;
+import modele.OrclassEntreprises;
+import modele.OrclassImageRisque;
+import modele.OrclassPlafondMaladie;
+import modele.OrclassPolice;
+//import modele.OrclassPolicesss;
+import modele.OrclassPoliceCaracteristique;
+import modele.OrclassPoliceCommissionApporteur;
+import modele.OrclassPoliceGarantie;
+import modele.OrclassPolicePlafond;
+import modele.OrclassQuitance;
+import modele.OrclassRisque;
+import modele.OrclassRisqueFamille;
+import modele.OrclassUtilisateurs;
+import modele.Orclass_TypeAvenant;
+
+/**
+ *
+ * @author hpfamille
+ */
+public interface ISante {
+    public Boolean addProjetSanteByMaladieFamille(OrclassAssure assure,OrclassPolice police, OrclassRisque risque , List<OrclassRisqueFamille> famille,OrclassPlafondMaladie plafondMaladie,List<OrclassDetailPolicePlafond> detailPolicePlafonds,List<OrclassPoliceCaracteristique> policeCaracteristiques,List<OrclassPoliceGarantie> policeGaranties,OrclassQuitance quitance,List<OrclassPoliceCommissionApporteur> commissionApporteurs,OrclassEntreprises entreprises,OrclassUtilisateurs user,Boolean print,Boolean valide) throws GlobalException;
+    public Boolean addProjetSanteByIndividuel(OrclassAssure assure,OrclassPolice police,OrclassRisque risque ,OrclassPlafondMaladie plafondMaladie,List<OrclassDetailPolicePlafond> detailPolicePlafonds,List<OrclassPoliceCaracteristique> policeCaracteristiques,List<OrclassPoliceGarantie> policeGaranties,OrclassQuitance quitance,BigDecimal apport,BigDecimal gestion,OrclassEntreprises entreprises,OrclassUtilisateurs user,Boolean print,Boolean valide)throws GlobalException;
+
+  public Boolean addProjetSanteByMaladieGroup(OrclassAssure assure,OrclassPolice police, List<OrclassImageRisque> listeImagineRisque ,OrclassPlafondMaladie plafondMaladie,List<OrclassDetailPolicePlafond> detailPolicePlafonds,List<OrclassPoliceCaracteristique> policeCaracteristiques,List<OrclassPoliceGarantie> policeGaranties,OrclassQuitance quitance,List<OrclassPoliceCommissionApporteur> commissionApporteurs,OrclassEntreprises entreprises,OrclassUtilisateurs user,Boolean print,Boolean valide) throws GlobalException;
+  public Boolean addAenant(Orclass_TypeAvenant tpa,OrclassAssure assure,OrclassPolice police, List<OrclassRisque> listeRisque,List<OrclassRisqueFamille> famille,OrclassPolicePlafond  policePlafond,List<OrclassDetailPolicePlafond> detailPolicePlafonds,List<OrclassPoliceCaracteristique> policeCaracteristiques,List<OrclassPoliceGarantie> policeGaranties,OrclassQuitance quitance,List<OrclassPoliceCommissionApporteur> commissionApporteurs,OrclassEntreprises entreprises,OrclassUtilisateurs user )throws GlobalException;
+}
