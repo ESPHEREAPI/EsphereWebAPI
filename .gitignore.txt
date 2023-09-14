@@ -1,2 +1,7 @@
 #ignorer tout les fichier du target
 /target
+pom.xml
+nb-configuration.xml
+faces-config.NavData.xml
+/src/main/resources/META-INF/persistence.xml
+/war
